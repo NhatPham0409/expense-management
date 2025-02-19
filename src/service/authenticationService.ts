@@ -1,6 +1,7 @@
 import { callAPI, APIMethod, APIStatus } from "@/utils/callAPI"; // import callAPI và các enum
 
 interface LoginResponse {
+  message: string;
   token: string;
 }
 
