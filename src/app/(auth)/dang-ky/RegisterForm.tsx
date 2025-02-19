@@ -44,37 +44,7 @@ export default function RegisterForm() {
       >
         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
       </Form.Item>
-      <Form.Item
-        name="password"
-        rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
-      >
-        <Input.Password
-          prefix={<LockOutlined />}
-          placeholder="Mật khẩu"
-          size="large"
-        />
-      </Form.Item>
-      <Form.Item
-        name="confirmPassword"
-        dependencies={["password"]}
-        rules={[
-          { required: true, message: "Vui lòng xác nhận mật khẩu" },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue("password") === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error("Mật khẩu không khớp"));
-            },
-          }),
-        ]}
-      >
-        <Input.Password
-          prefix={<LockOutlined />}
-          placeholder="Xác nhận mật khẩu"
-          size="large"
-        />
-      </Form.Item>
+
       <Form.Item>
         <Button
           type="primary"

@@ -1,4 +1,4 @@
-import RegisterForm from "@/app/dang-ky/RegisterForm";
+import RegisterForm from "@/app/(auth)/dang-ky/RegisterForm";
 
 export default function RegisterPage() {
   return (

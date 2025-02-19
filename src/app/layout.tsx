@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { ConfigProvider } from "antd";
 import type React from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import AppHeader from "@/components/header";
+import AppFooter from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
