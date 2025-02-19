@@ -1,4 +1,4 @@
-import LoginForm from "@/app/dang-nhap/LoginForm";
+import LoginForm from "@/app/(auth)/dang-nhap/LoginForm";
 import Title from "antd/es/typography/Title";
 
 export default function LoginPage() {

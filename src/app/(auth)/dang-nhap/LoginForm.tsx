@@ -5,6 +5,7 @@ import { Form, Input, Button, message } from "antd";
 import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { login } from "@/service/authenticationService";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -13,9 +14,14 @@ export default function LoginForm() {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Success:", values);
+      const { email, password } = values;
+
+      const response = await login(email, password);
+      console.log("Login response:", response);
+
       message.success("Đăng nhập thành công!");
+
+      // router.push("/dashboard");
     } catch (error) {
       console.error("Error:", error);
       message.error("Đăng nhập thất bại. Vui lòng thử lại.");
@@ -32,11 +38,12 @@ export default function LoginForm() {
       layout="vertical"
     >
       <Form.Item
-        name="username"
+        name="email"
         rules={[{ required: true, message: "Vui lòng nhập email" }]}
       >
         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
       </Form.Item>
+
       <Form.Item
         name="password"
         rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
