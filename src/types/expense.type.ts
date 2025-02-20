@@ -5,5 +5,8 @@ export interface IExpense {
   buyer: IUser;
   cost: number;
   note: string;
-  share: {};
+  share: Map<string, number>;
+  expenseType: string;
+  createBy: IUser;
+  createAt: string;
 }
