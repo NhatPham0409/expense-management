@@ -175,7 +175,7 @@ export default function RoomExpenses() {
   );
 
   return (
-    <div className="p-4 md:p-6 w-full mx-auto">
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       <div className="flex items-start gap-2 justify-start mb-4">
         <Title level={3} className="text-xl md:text-2xl">
           Quản lý chi phí phòng: A0701

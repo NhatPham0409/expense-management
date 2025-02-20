@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const {userId} = getUserIdFromToken(req);
+    const { userId } = getUserIdFromToken(req);
     const { oldPassword, newPassword } = await req.json();
 
     if (!oldPassword || !newPassword) {

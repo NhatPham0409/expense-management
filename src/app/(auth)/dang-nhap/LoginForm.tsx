@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Form, Input, Button, message } from "antd";
+import { Form, Input, Button } from "antd";
 import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login } from "@/service/authenticationService";
+import { toast } from "react-toastify";
+import { AuthService } from "@/service";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -16,15 +17,20 @@ export default function LoginForm() {
     try {
       const { email, password } = values;
 
-      const response = await login(email, password);
-      console.log("Login response:", response);
-
-      message.success("Đăng nhập thành công!");
-
-      // router.push("/dashboard");
-    } catch (error) {
-      console.error("Error:", error);
-      message.error("Đăng nhập thất bại. Vui lòng thử lại.");
+      toast
+        .promise(AuthService.login({ email, password }), {
+          pending: "Đang xử lý dữ liệu",
+        })
+        .then((res) => {
+          toast.success(res.data.message);
+          router.push("/");
+        })
+        .catch((err) => {
+          const errorMessage = err.response.data.message;
+          toast.error(errorMessage);
+        });
+    } catch (error: any) {
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
