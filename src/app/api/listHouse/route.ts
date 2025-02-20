@@ -1,13 +1,16 @@
 import House from "@/models/House";
 import connectDB from "@/utils/db";
+import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import next from "next";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
+    const { userId } = getUserIdFromToken(req);
+
     const houses = await House.find(
-      {},
+      { member: userId },
       "_id name des member admin expenseType expense"
     )
       .populate("member", "_id email name") // Lấy thông tin _id, email, name của thành viên
