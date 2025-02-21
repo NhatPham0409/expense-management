@@ -18,15 +18,16 @@ export async function sendVerificationEmail(to: string, password: string) {
     });
 
     const mailOptions = {
-      from: `"Your App" <${process.env.EMAIL_USER}>`,
+      from: `"ỨNG DỤNG QUẢN LÝ CHI TIÊU" <${process.env.EMAIL_USER}>`,
       to,
       subject: "Xác thực tài khoản của bạn",
       html: `
         <h2>Chào mừng bạn đến với ứng dụng của chúng tôi!</h2>
         <p>Bạn đã đăng ký tài khoản bằng email này. Vui lòng sử dụng mật khẩu dưới đây để đăng nhập lần đầu:</p>
         <h3 style="color:blue;">${password}</h3>
-        <p>Hãy đăng nhập và đổi mật khẩu ngay để bảo mật tài khoản.</p>
-      `,
+        <p>Hãy đăng nhập và đổi mật khẩu ngay để bảo mật tài khoản. madeby "nhattrong"</p>
+        <p style="font-style: italic;">made by "nhattrong"</p>
+        `,
     };
 
     await transporter.sendMail(mailOptions);
