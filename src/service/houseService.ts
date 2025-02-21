@@ -24,6 +24,12 @@ async function createHouse({
   return response;
 }
 
+async function updateHouse(payload: any) {
+  const response = await axiosInstance.post(`/api/updateHouse`, payload);
+
+  return response;
+}
+
 async function getHouseInfor(houseId: string) {
   const response = await axiosInstance.post(`/api/getHouseInfo`, {
     houseId,
@@ -70,4 +76,5 @@ export const HouseService = {
   deleteExpense,
   calculateDebt,
   statistic,
+  updateHouse,
 };

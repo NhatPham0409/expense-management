@@ -13,11 +13,12 @@ import {
   Row,
   Col,
   Form,
-  Modal,
   Dropdown,
   type MenuProps,
   Card,
   Spin,
+  Empty,
+  Tag,
 } from "antd";
 import {
   PlusOutlined,
@@ -33,12 +34,12 @@ import ExpenseChart from "@/app/(main)/[id]/components/ExpenseChart";
 import type { IHouse } from "@/types/house.type";
 import { HouseService } from "@/service";
 import { useParams } from "next/navigation";
-import { EXPENSE_TYPE } from "@/utils/constant";
 import { IExpense } from "@/types/expense.type";
-
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import ConfirmPopup from "@/components/ConfirmPopup";
+import { expenseTypes } from "@/utils/constant";
+import RoomManagerModal from "@/app/(main)/[id]/components/RoomManagerModal";
 
 interface DebtType {
   userId: string;
@@ -60,13 +61,6 @@ const containerVariants = {
 const { Title } = Typography;
 const { Option } = Select;
 
-type Expense = {
-  buyer: string;
-  amount: number;
-  note: string;
-  shares: { [key: string]: number };
-};
-
 export default function RoomExpenses() {
   const [form] = Form.useForm();
   const [houseInfor, setHouseInfor] = useState<IHouse | null>(null);
@@ -75,12 +69,14 @@ export default function RoomExpenses() {
   const houseId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [roomMembers, setRoomMembers] = useState<IHouse["member"]>([]);
   const [shares, setShares] = useState<{ [key: string]: number }>({});
-  const [expenseType, setExpenseType] = useState<string>(EXPENSE_TYPE[0].value);
+  const [expenseType, setExpenseType] = useState<string>(expenseTypes[0].value);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [isModalDelete, setIsModalDelete] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
   const [calculateDebt, setCalculateDebt] = useState<DebtType[]>([]);
+  const [isModalRoomManager, setIsModalRoomManager] = useState(false);
+  const [isModalAddUser, setIsModalAddUser] = useState(false);
 
   const fetchHouseInfor = async () => {
     setIsLoading(true);
@@ -115,7 +111,6 @@ export default function RoomExpenses() {
     }
   };
 
-  console.log({ houseInfor });
   useEffect(() => {
     fetchHouseInfor();
   }, [houseId]);
@@ -210,8 +205,22 @@ export default function RoomExpenses() {
       title: "Ghi chú",
       dataIndex: "note",
       key: "note",
-      render: (note: string, record: IExpense) =>
-        `${record.expenseType}: ${note}`,
+      render: (note: string, record: IExpense) => (
+        <div>
+          <Tag
+            color={
+              expenseTypes.find((item) => item.value === record.expenseType)
+                ?.color
+            }
+          >
+            {
+              expenseTypes.find((item) => item.value === record.expenseType)
+                ?.label
+            }
+          </Tag>
+          {note}
+        </div>
+      ),
     },
     ...(houseInfor?.member || []).map((member) => ({
       title: member.name,
@@ -250,7 +259,7 @@ export default function RoomExpenses() {
       key: "home",
       label: "Quản lý thông tin phòng",
       icon: <HomeOutlined />,
-      onClick: () => console.log("Manage room info"),
+      onClick: () => setIsModalRoomManager(true),
     },
     {
       key: "add",
@@ -327,7 +336,7 @@ export default function RoomExpenses() {
           <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
             <div className="flex items-start gap-2 justify-start mb-4">
               <Title level={3} className="text-xl md:text-2xl">
-                Quản lý chi phí phòng: A0701
+                Quản lý chi phí phòng: {houseInfor?.name}
               </Title>
 
               <Dropdown menu={{ items: dropdownItems }} placement="bottomLeft">
@@ -383,7 +392,7 @@ export default function RoomExpenses() {
                         popupMatchSelectWidth={false}
                         onChange={(value) => setExpenseType(value)}
                       >
-                        {EXPENSE_TYPE.map((expense) => (
+                        {expenseTypes.map((expense) => (
                           <Option key={expense.value} value={expense.value}>
                             {expense.label}
                           </Option>
@@ -432,43 +441,45 @@ export default function RoomExpenses() {
             </Form>
 
             <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
-              <Card
-                title="Biểu đồ chi phí"
-                className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
-              >
-                <ExpenseChart houseId={houseId} />
-              </Card>
+              <ExpenseChart houseId={houseId} />
               <Card
                 title="Thông tin dư nợ"
                 className="w-full md:w-1/2 flex-grow"
               >
-                <div className="flex flex-col h-full justify-between">
-                  <ul className="list-none p-0 mb-4">
-                    {calculateDebt.map((member, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 last:border-b-0"
-                      >
-                        <span className="text-base md:text-lg font-medium">
-                          {member.name}
-                        </span>
-                        <div className="flex items-center">
-                          <span
-                            className={`text-base md:text-lg font-semibold ${
-                              member.balance > 0
-                                ? "text-green-600"
-                                : member.balance < 0
-                                ? "text-red-600"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {formatCurrency(member.balance)}
+                {calculateDebt && calculateDebt.length > 0 ? (
+                  <div className="flex flex-col h-full justify-between">
+                    <ul className="list-none p-0 mb-4">
+                      {calculateDebt.map((member, index) => (
+                        <li
+                          key={index}
+                          className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 last:border-b-0"
+                        >
+                          <span className="text-base md:text-lg font-medium">
+                            {member.name}
                           </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                          <div className="flex items-center">
+                            <span
+                              className={`text-base md:text-lg font-semibold ${
+                                member.balance > 0
+                                  ? "text-green-600"
+                                  : member.balance < 0
+                                  ? "text-red-600"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {formatCurrency(member.balance)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="Chưa có thông tin dư nợ"
+                  />
+                )}
               </Card>
             </div>
 
@@ -486,6 +497,13 @@ export default function RoomExpenses() {
               handleDelete={handleDeleteExpenses}
               setIsModalDelete={setIsModalDelete}
               message={<p>Bạn có chắc chắn muốn xóa chi phí này không?</p>}
+            />
+
+            <RoomManagerModal
+              isModalVisible={isModalRoomManager}
+              setIsModalVisible={setIsModalRoomManager}
+              onSuccessfullyCreated={fetchHouseInfor}
+              houseInfor={houseInfor}
             />
           </div>
         )}

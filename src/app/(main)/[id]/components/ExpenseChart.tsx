@@ -1,6 +1,6 @@
 import { HouseService } from "@/service";
 import { Pie, Column } from "@ant-design/charts";
-import { Tabs } from "antd";
+import { Card, Empty, Tabs } from "antd";
 import React, { useEffect, useState } from "react";
 
 interface ExpenseChartProps {
@@ -42,7 +42,7 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
     value: houseStatistic.totalByType[key],
   }));
 
-  const barConfig = {
+  const columnConfig = {
     data: userData || [],
     xField: "type",
     yField: "value",
@@ -52,7 +52,7 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
       style: {
         fontSize: 14,
         fontWeight: "bold",
-        color: "white", // Chuyển số trong cột thành màu trắng
+        color: "white",
       },
     },
     tooltip: {
@@ -79,16 +79,37 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
     {
       key: "1",
       label: "Thống kê theo người",
-      children: <Column {...barConfig} />,
+      children: houseStatistic.totalByUser?.length ? (
+        <Column {...columnConfig} />
+      ) : (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="Chưa có dữ liệu thống kê"
+        />
+      ),
     },
     {
       key: "2",
       label: "Thống kê theo loại",
-      children: <Pie {...pieConfig} />,
+      children: houseStatistic.totalByType ? (
+        <Pie {...pieConfig} />
+      ) : (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="Chưa có dữ liệu thống kê"
+        />
+      ),
     },
   ];
 
-  return <Tabs defaultActiveKey="1" items={tabItems} />;
+  return (
+    <Card
+      title="Biểu đồ chi phí"
+      className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
+    >
+      <Tabs defaultActiveKey="1" items={tabItems} />
+    </Card>
+  );
 }
 
 export default ExpenseChart;
