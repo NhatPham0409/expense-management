@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
       .lean();
     console.log(expenses);
 
-    const totalByUser: Record<string, { name: string; totalSpent: number }> = {};
+    const totalByUser: Record<string, { name: string; totalSpent: number }> =
+      {};
     const totalByType: Record<string, number> = {};
 
     expenses.forEach((expense) => {
