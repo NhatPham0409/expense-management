@@ -26,8 +26,9 @@ import {
   DollarOutlined,
   SettingOutlined,
   HomeOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
-import { formatCurrency, getBalanceColor } from "@/utils/utils";
+import { formatCurrency } from "@/utils/utils";
 import ExpenseChart from "@/app/(main)/[id]/components/ExpenseChart";
 import type { IHouse } from "@/types/house.type";
 import { HouseService } from "@/service";
@@ -37,6 +38,13 @@ import { IExpense } from "@/types/expense.type";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
+import ConfirmPopup from "@/components/ConfirmPopup";
+
+interface DebtType {
+  userId: string;
+  name: string;
+  balance: number;
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -69,14 +77,19 @@ export default function RoomExpenses() {
   const [shares, setShares] = useState<{ [key: string]: number }>({});
   const [expenseType, setExpenseType] = useState<string>(EXPENSE_TYPE[0].value);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
+  const [isModalDelete, setIsModalDelete] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
+  const [calculateDebt, setCalculateDebt] = useState<DebtType[]>([]);
 
   const fetchHouseInfor = async () => {
     setIsLoading(true);
     try {
       if (houseId) {
-        const response = await HouseService.getHouseInfor(houseId);
-        if (response.data) {
-          const houseInfo = response.data.houseInfo;
+        const responseHouseInfor = await HouseService.getHouseInfor(houseId);
+
+        if (responseHouseInfor.data) {
+          const houseInfo = responseHouseInfor.data.houseInfo;
           setHouseInfor(houseInfo);
 
           const initialShares = Object.fromEntries(
@@ -85,14 +98,24 @@ export default function RoomExpenses() {
           setShares(initialShares);
           setRoomMembers(houseInfo.member);
         }
+
+        try {
+          const responseCalculate = await HouseService.calculateDebt(houseId);
+          if (responseCalculate.data) {
+            setCalculateDebt(responseCalculate.data.debt);
+          }
+        } catch (error) {
+          console.error("Lỗi khi tính toán dư nợ:", error);
+        }
       }
     } catch (error) {
-      console.error("Error fetching house list:", error);
+      console.error("Lỗi khi lấy thông tin phòng:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  console.log({ houseInfor });
   useEffect(() => {
     fetchHouseInfor();
   }, [houseId]);
@@ -116,6 +139,7 @@ export default function RoomExpenses() {
             <Select
               value={shares[member._id] || 1}
               onChange={(value) => handleShareChange(member._id, value)}
+              style={{ width: 100, textAlign: "center" }}
             >
               {[...Array(21)].map((_, index) => (
                 <Option key={index} value={index}>
@@ -195,6 +219,30 @@ export default function RoomExpenses() {
       key: member._id,
       render: (share: number | undefined) => share || 0,
     })),
+    {
+      title: "Hành động",
+      dataIndex: "action",
+      key: "action",
+      width: 150,
+      render: (text: string, record: IExpense) => (
+        <Space size="small">
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => handleEdit(record)}
+            type="link"
+          ></Button>
+          <Button
+            icon={<UserDeleteOutlined />}
+            onClick={() => {
+              setSelectedExpense(record);
+              setIsModalDelete(true);
+            }}
+            type="link"
+            danger
+          ></Button>
+        </Space>
+      ),
+    },
   ];
 
   const dropdownItems: MenuProps["items"] = [
@@ -223,6 +271,31 @@ export default function RoomExpenses() {
       onClick: () => console.log("Settle debt"),
     },
   ];
+
+  const handleEdit = (record: IExpense) => {
+    console.log("Chỉnh sửa:", record);
+  };
+
+  const handleDeleteExpenses = () => {
+    if (selectedExpense) {
+      setIsConfirmingDelete(true);
+      toast
+        .promise(HouseService.deleteExpense(selectedExpense._id), {
+          pending: `Từ khoá đang được xóa `,
+          success: `Xóa từ khoá thành công`,
+        })
+        .then(() => {
+          fetchHouseInfor();
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        })
+        .finally(() => {
+          setIsConfirmingDelete(false);
+          setIsModalDelete(false);
+        });
+    }
+  };
 
   return (
     <motion.div
@@ -339,22 +412,31 @@ export default function RoomExpenses() {
                     <Button
                       type="primary"
                       htmlType="submit"
-                      icon={<PlusOutlined />}
+                      icon={
+                        isConfirming ? <LoadingOutlined /> : <PlusOutlined />
+                      }
                       style={{ width: "100%" }}
+                      disabled={isConfirming}
                     >
-                      Thêm mới
+                      {isConfirming ? (
+                        <span className="ml-2">Đang xử lý</span>
+                      ) : (
+                        <p>
+                          <span className="ml-1">Thêm</span>
+                        </p>
+                      )}
                     </Button>
                   </Form.Item>
                 </Col>
               </Row>
             </Form>
 
-            <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 mb-4">
+            <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
               <Card
                 title="Biểu đồ chi phí"
                 className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
               >
-                <ExpenseChart />
+                <ExpenseChart houseId={houseId} />
               </Card>
               <Card
                 title="Thông tin dư nợ"
@@ -362,9 +444,9 @@ export default function RoomExpenses() {
               >
                 <div className="flex flex-col h-full justify-between">
                   <ul className="list-none p-0 mb-4">
-                    {houseInfor?.member.map((member) => (
+                    {calculateDebt.map((member, index) => (
                       <li
-                        key={member._id}
+                        key={index}
                         className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 last:border-b-0"
                       >
                         <span className="text-base md:text-lg font-medium">
@@ -372,11 +454,15 @@ export default function RoomExpenses() {
                         </span>
                         <div className="flex items-center">
                           <span
-                            className={`text-base md:text-lg font-semibold ${getBalanceColor(
-                              1000000
-                            )}`}
+                            className={`text-base md:text-lg font-semibold ${
+                              member.balance > 0
+                                ? "text-green-600"
+                                : member.balance < 0
+                                ? "text-red-600"
+                                : "text-gray-600"
+                            }`}
                           >
-                            {formatCurrency(1000000)}
+                            {formatCurrency(member.balance)}
                           </span>
                         </div>
                       </li>
@@ -393,6 +479,14 @@ export default function RoomExpenses() {
                 scroll={{ x: "max-content" }}
               />
             </div>
+
+            <ConfirmPopup
+              isConfirming={isConfirmingDelete}
+              isModalDelete={isModalDelete}
+              handleDelete={handleDeleteExpenses}
+              setIsModalDelete={setIsModalDelete}
+              message={<p>Bạn có chắc chắn muốn xóa chi phí này không?</p>}
+            />
           </div>
         )}
       </AnimatePresence>

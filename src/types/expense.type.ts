@@ -1,6 +1,7 @@
 import { IUser } from "./user.type";
 
 export interface IExpense {
+  _id: string;
   idHouse: string;
   buyer: IUser;
   cost: number;
