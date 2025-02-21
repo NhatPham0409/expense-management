@@ -8,4 +8,6 @@ export interface IHouse {
   member: IUser[];
   admin: IUser;
   expenses: IExpense[];
+  teleToken: string;
+  teleId: string;
 }
