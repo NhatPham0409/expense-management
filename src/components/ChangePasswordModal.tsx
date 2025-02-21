@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Modal, Input, Form, message, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";

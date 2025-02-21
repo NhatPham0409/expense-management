@@ -1,21 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Layout, Dropdown, Avatar, Button, Spin } from "antd";
+import Image from "next/image";
 import { LogoutOutlined, LockOutlined } from "@ant-design/icons";
-import type { MenuProps } from "antd";
-import { IUser } from "@/types/user.type";
 import { UserService } from "@/service";
 import { clearLocalToken } from "@/utils/localToken";
 import ChangePasswordModal from "./ChangePasswordModal";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useUserContext } from "@/app/app-provider";
 
 const { Header } = Layout;
 
 export default function AppHeader() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [userInfor, setUserInfor] = useState<IUser | null>(null);
+  const { userInfor, setUserInfor } = useUserContext();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const router = useRouter();
 
@@ -43,10 +43,11 @@ export default function AppHeader() {
 
   const handleLogout = () => {
     clearLocalToken();
+    setUserInfor(null);
     router.push("/dang-nhap");
   };
 
-  const dropdownItems: MenuProps["items"] = [
+  const dropdownItems = [
     {
       key: "1",
       label: "Đổi mật khẩu",
@@ -62,10 +63,10 @@ export default function AppHeader() {
   ];
 
   return (
-    <Header className="flex items-center justify-between px-4 bg-gray-800">
+    <Header className="flex items-center justify-between bg-gray-800">
       <div className="flex items-center">
         <Link href="/" className="text-2xl font-bold text-blue-600">
-          Logo
+          <Image src="/logo.png" alt="logo" width={50} height={50} />
         </Link>
       </div>
       {!isLoading ? (

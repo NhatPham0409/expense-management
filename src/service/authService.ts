@@ -13,6 +13,15 @@ async function login({ email, password }: { email: string; password: string }) {
   return response;
 }
 
+async function register({ email, name }: { email: string; name: string }) {
+  const response: any = await axiosInstance.post(`/api/auth/register`, {
+    email,
+    name,
+  });
+
+  return response;
+}
+
 async function changePassword({
   oldPassword,
   newPassword,
@@ -31,4 +40,5 @@ async function changePassword({
 export const AuthService = {
   login,
   changePassword,
+  register,
 };

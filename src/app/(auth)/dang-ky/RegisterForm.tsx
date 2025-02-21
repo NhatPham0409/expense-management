@@ -4,16 +4,31 @@ import { useState } from "react";
 import { Form, Input, Button, message } from "antd";
 import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { AuthService } from "@/service";
+import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Success:", values);
-      message.success("Đăng ký thành công!");
+      const { email, name } = values;
+
+      toast
+        .promise(AuthService.register({ email, name }), {
+          pending: "Đang xử lý dữ liệu",
+        })
+        .then((res) => {
+          toast.success(res.data.message);
+          router.push("/dang-nhap");
+        })
+        .catch((err) => {
+          const errorMessage = err.response.data.message;
+          toast.error(errorMessage);
+        });
     } catch (error) {
       console.error("Error:", error);
       message.error("Đăng ký thất bại. Vui lòng thử lại.");
@@ -30,12 +45,6 @@ export default function RegisterForm() {
       layout="vertical"
     >
       <Form.Item
-        name="fullName"
-        rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-      >
-        <Input prefix={<UserOutlined />} placeholder="Họ tên" size="large" />
-      </Form.Item>
-      <Form.Item
         name="email"
         rules={[
           { required: true, message: "Vui lòng nhập email" },
@@ -43,6 +52,12 @@ export default function RegisterForm() {
         ]}
       >
         <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
+      </Form.Item>
+      <Form.Item
+        name="name"
+        rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+      >
+        <Input prefix={<UserOutlined />} placeholder="Họ tên" size="large" />
       </Form.Item>
 
       <Form.Item>

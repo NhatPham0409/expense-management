@@ -7,5 +7,5 @@ export interface IHouse {
   des: string;
   member: IUser[];
   admin: IUser;
-  expense: IExpense[];
+  expenses: IExpense[];
 }

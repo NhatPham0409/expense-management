@@ -63,7 +63,7 @@ function RoomCard({ room }: RoomCardProps) {
                   )}
                 </div>
                 <span className="text-sm text-gray-500">
-                  {room.member.length} member{room.member.length !== 1 && "s"}
+                  {room.member.length} thành viên
                 </span>
               </div>
             </div>

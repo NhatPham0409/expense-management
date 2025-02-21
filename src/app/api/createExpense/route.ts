@@ -8,6 +8,8 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const { userId } = getUserIdFromToken(req);
     const { idHouse, buyer, note, cost, share, expenseType } = await req.json();
+    console.log(req.json());
+    console.log({ idHouse, buyer, note, cost, share, expenseType });
     if (!idHouse || !buyer || !cost || !share) {
       return NextResponse.json(
         { message: "Thiếu thông tin cần thiết" },

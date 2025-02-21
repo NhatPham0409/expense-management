@@ -6,6 +6,7 @@ import { HouseService, UserService } from "@/service";
 import { IUser } from "@/types/user.type";
 import { toast } from "react-toastify";
 import { LoadingOutlined } from "@ant-design/icons";
+import { useUserContext } from "@/app/app-provider";
 
 interface AddRoomModalProps {
   isModalVisible: boolean;
@@ -18,6 +19,8 @@ function AddRoomModal({
   setIsModalVisible,
   onSuccessfullyCreated,
 }: AddRoomModalProps) {
+  const { userInfor } = useUserContext();
+
   const [form] = Form.useForm();
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -30,14 +33,17 @@ function AddRoomModal({
       const response = await UserService.getListUsers();
 
       if (response.data) {
-        setListUsers(response.data.users);
+        const filteredUsers = response.data.users.filter(
+          (user: IUser) => userInfor && user._id !== userInfor._id
+        );
+        setListUsers(filteredUsers);
       }
     } catch (error) {
       console.error("Error fetching house list:", error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userInfor]);
 
   useEffect(() => {
     fetchListUsers();

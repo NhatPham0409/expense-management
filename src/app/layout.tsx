@@ -4,6 +4,7 @@ import { ConfigProvider } from "antd";
 import type React from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import ToastNotifications from "@/app/components/ToastNotifications";
+import { AppProvider } from "@/app/app-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,7 @@ export default function RootLayout({
           }}
         >
           <AntdRegistry>
-            {children}
+            <AppProvider>{children}</AppProvider>
             <ToastNotifications />
           </AntdRegistry>
         </ConfigProvider>
