@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const { userId } = getUserIdFromToken(req);
-    const user = await User.findById(userId, "_id email name houses");
+    const user = await User.findById(userId, "_id email name");
     if (!user) {
       return NextResponse.json({ message: "Không tìm thấy người dùng!" }, { status: 401 });
     }
