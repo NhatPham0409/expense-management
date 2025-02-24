@@ -1,11 +1,25 @@
 import { HouseService } from "@/service";
+import { expenseTypes } from "@/utils/constant";
 import { Pie, Column } from "@ant-design/charts";
 import { Card, Empty, Tabs } from "antd";
 import React, { useEffect, useState } from "react";
+import LoadingData from "@/components/LoadingData";
+import { formatCurrency } from "@/utils/utils";
 
 interface ExpenseChartProps {
   houseId: string | undefined;
 }
+
+const data = [
+  { type: "1-3秒", value: 0.16 },
+  { type: "4-10秒", value: 0.125 },
+  { type: "11-30秒", value: 0.24 },
+  { type: "31-60秒", value: 0.19 },
+  { type: "1-3分", value: 0.22 },
+  { type: "3-10分", value: 0.05 },
+  { type: "10-30分", value: 0.01 },
+  { type: "30+分", value: 0.015 },
+];
 
 function ExpenseChart({ houseId }: ExpenseChartProps) {
   const [houseStatistic, setHouseStatistic] = useState<any>([]);
@@ -37,10 +51,30 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
     color: item.name,
   }));
 
-  const typeData = Object.keys(houseStatistic.totalByType || {}).map((key) => ({
-    type: key,
-    value: houseStatistic.totalByType[key],
-  }));
+  const typeData = Object.keys(houseStatistic.totalByType || {}).map((key) => {
+    const expense = expenseTypes.find((item) => item.value === key);
+    return {
+      type: expense ? expense.label : key,
+      value: houseStatistic.totalByType[key],
+    };
+  });
+
+  const pieConfig = {
+    data: typeData || [],
+    angleField: "value",
+    colorField: "type",
+    label: {
+      text: (originData: any) => {
+        return formatCurrency(originData.value);
+      },
+      style: {
+        fontWeight: "bold",
+      },
+    },
+    legend: {
+      position: "bottom",
+    },
+  };
 
   const columnConfig = {
     data: userData || [],
@@ -54,32 +88,20 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
         fontWeight: "bold",
         color: "white",
       },
-    },
-    tooltip: {
-      formatter: (datum: any) => ({ name: datum.type, value: datum.value }),
-    },
-  };
-
-  const pieConfig = {
-    data: typeData || [],
-    angleField: "value",
-    colorField: "type",
-    label: {
-      text: "value",
-      style: {
-        fontWeight: "bold",
+      text: (originData: any) => {
+        return formatCurrency(originData.value);
       },
     },
-    legend: {
-      position: "bottom",
-    },
+    legend: false,
   };
 
   const tabItems = [
     {
       key: "1",
       label: "Thống kê theo người",
-      children: houseStatistic.totalByUser?.length ? (
+      children: isLoading ? (
+        <LoadingData />
+      ) : houseStatistic.totalByUser?.length ? (
         <Column {...columnConfig} />
       ) : (
         <Empty

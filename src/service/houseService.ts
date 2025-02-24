@@ -52,6 +52,12 @@ async function deleteExpense(expenseId: string) {
   return response;
 }
 
+async function updateExpense(payload: any) {
+  const response = await axiosInstance.post(`/api/updateExpense`, payload);
+
+  return response;
+}
+
 async function calculateDebt(houseId: string) {
   const response = await axiosInstance.post(`/api/calculateDebt`, {
     houseId,
@@ -68,6 +74,12 @@ async function statistic(houseId: string) {
   return response;
 }
 
+async function addMember(payload: any) {
+  const response = await axiosInstance.post(`/api/addMember`, payload);
+
+  return response;
+}
+
 export const HouseService = {
   getListHouse,
   createHouse,
@@ -77,4 +89,6 @@ export const HouseService = {
   calculateDebt,
   statistic,
   updateHouse,
+  updateExpense,
+  addMember,
 };

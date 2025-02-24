@@ -7,19 +7,19 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { IHouse } from "@/types/house.type";
 import { HouseService } from "@/service";
 
-interface RoomManagerModalProps {
+interface AddTelegramModalProps {
   isModalVisible: boolean;
   setIsModalVisible: (value: boolean) => void;
   onSuccessfullyCreated: () => void;
   houseInfor: IHouse | null;
 }
 
-function RoomManagerModal({
+function AddTelegramModal({
   isModalVisible,
   setIsModalVisible,
   onSuccessfullyCreated,
   houseInfor,
-}: RoomManagerModalProps) {
+}: AddTelegramModalProps) {
   const [form] = Form.useForm();
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
 
@@ -112,4 +112,4 @@ function RoomManagerModal({
   );
 }
 
-export default RoomManagerModal;
+export default AddTelegramModal;
