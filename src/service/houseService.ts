@@ -38,6 +38,28 @@ async function getHouseInfor(houseId: string) {
   return response;
 }
 
+async function getListExpenseOfHouse(
+  houseId: string = "",
+  page: number = 1,
+  limit: number = 20,
+  year?: number,
+  month?: number
+) {
+  let payload: any = { houseId, page, limit };
+
+  if (year !== undefined) {
+    payload = { ...payload, year };
+  }
+
+  if (month !== undefined) {
+    payload = { ...payload, month };
+  }
+
+  const response = await axiosInstance.post(`/api/listExpense`, payload);
+
+  return response;
+}
+
 async function createExpense(payload: any) {
   const response = await axiosInstance.post(`/api/createExpense`, payload);
 
@@ -80,6 +102,18 @@ async function addMember(payload: any) {
   return response;
 }
 
+async function addTeleInfo(payload: any) {
+  const response = await axiosInstance.post(`/api/addTeleInfo`, payload);
+
+  return response;
+}
+
+async function deleteMember(payload: any) {
+  const response = await axiosInstance.post(`/api/deleteMember`, payload);
+
+  return response;
+}
+
 export const HouseService = {
   getListHouse,
   createHouse,
@@ -91,4 +125,7 @@ export const HouseService = {
   updateHouse,
   updateExpense,
   addMember,
+  addTeleInfo,
+  getListExpenseOfHouse,
+  deleteMember,
 };

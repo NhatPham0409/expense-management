@@ -8,20 +8,10 @@ import { formatCurrency } from "@/utils/utils";
 
 interface ExpenseChartProps {
   houseId: string | undefined;
+  lastUpdated: number;
 }
 
-const data = [
-  { type: "1-3秒", value: 0.16 },
-  { type: "4-10秒", value: 0.125 },
-  { type: "11-30秒", value: 0.24 },
-  { type: "31-60秒", value: 0.19 },
-  { type: "1-3分", value: 0.22 },
-  { type: "3-10分", value: 0.05 },
-  { type: "10-30分", value: 0.01 },
-  { type: "30+分", value: 0.015 },
-];
-
-function ExpenseChart({ houseId }: ExpenseChartProps) {
+function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
   const [houseStatistic, setHouseStatistic] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,7 +33,7 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
 
   useEffect(() => {
     fetchHouseStatistic();
-  }, [houseId]);
+  }, [houseId, lastUpdated]);
 
   const userData = houseStatistic.totalByUser?.map((item: any) => ({
     type: item.name,
@@ -113,7 +103,9 @@ function ExpenseChart({ houseId }: ExpenseChartProps) {
     {
       key: "2",
       label: "Thống kê theo loại",
-      children: houseStatistic.totalByType ? (
+      children: isLoading ? (
+        <LoadingData />
+      ) : houseStatistic.totalByType ? (
         <Pie {...pieConfig} />
       ) : (
         <Empty

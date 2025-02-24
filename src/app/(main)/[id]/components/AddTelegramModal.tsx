@@ -29,14 +29,11 @@ function AddTelegramModal({
       try {
         const payload = {
           houseId: houseInfor?._id,
-          updateData: {
-            name: values.name,
-            des: values.des,
-          },
+          teleId: values.teleId,
         };
 
         toast
-          .promise(HouseService.updateHouse(payload), {
+          .promise(HouseService.addTeleInfo(payload), {
             pending: "Đang xử lý dữ liệu",
           })
           .then((res) => {
@@ -62,50 +59,23 @@ function AddTelegramModal({
     setIsModalVisible(false);
   };
 
-  useEffect(() => {
-    if (houseInfor) {
-      form.setFieldsValue({
-        name: houseInfor.name,
-        des: houseInfor.des,
-      });
-    }
-  }, [houseInfor, form]);
-
   return (
     <Modal
-      title="Thay đổi thông tin phòng"
+      title="Liên kết telegram"
       open={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
-      okButtonProps={{ disabled: isConfirming }}
-      cancelText={
-        <p>
-          <span className="ml-1">Hủy</span>
-        </p>
-      }
-      okText={
-        isConfirming ? (
-          <div>
-            <Spin indicator={<LoadingOutlined />} size="small" />
-            <span className="ml-2">Đang xử lý</span>
-          </div>
-        ) : (
-          <p>
-            <span className="ml-1">Thêm</span>
-          </p>
-        )
-      }
+      okText="Liên kết"
+      cancelText="Hủy"
+      confirmLoading={isConfirming}
     >
       <Form form={form} layout="vertical">
         <Form.Item
-          name="name"
-          label="Tên phòng"
-          rules={[{ required: true, message: "Vui lòng nhập tên phòng!" }]}
+          name="teleId"
+          label="Telegram ID"
+          rules={[{ required: true, message: "Vui lòng nhập thông tin!" }]}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item name="des" label="Mô tả">
-          <Input.TextArea />
+          <Input placeholder="Nhập thông tin" />
         </Form.Item>
       </Form>
     </Modal>

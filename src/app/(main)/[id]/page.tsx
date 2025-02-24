@@ -8,17 +8,13 @@ import {
   InputNumber,
   Button,
   Space,
-  Table,
   Popover,
   Row,
   Col,
   Form,
   Dropdown,
   type MenuProps,
-  Card,
   Spin,
-  Empty,
-  Tag,
 } from "antd";
 import {
   PlusOutlined,
@@ -29,22 +25,21 @@ import {
   HomeOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
-import { formatCurrency } from "@/utils/utils";
 import ExpenseChart from "@/app/(main)/[id]/components/ExpenseChart";
 import type { IHouse } from "@/types/house.type";
 import { HouseService } from "@/service";
 import { useParams } from "next/navigation";
-import { IExpense } from "@/types/expense.type";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import ConfirmPopup from "@/components/ConfirmPopup";
 import { expenseTypes } from "@/utils/constant";
 import RoomManagerModal from "@/app/(main)/[id]/components/RoomManagerModal";
 import AddUserModal from "@/app/(main)/[id]/components/AddUserModal";
-import { useUserContext } from "@/app/app-provider";
-import EditExpenseModal from "@/app/(main)/[id]/components/EditExpenseModal";
+import AddTelegramModal from "@/app/(main)/[id]/components/AddTelegramModal";
+import ExpenseTable from "@/app/(main)/[id]/components/ExpenseTable";
+import ExpenseDebt from "@/app/(main)/[id]/components/ExpenseDebt";
+import RemoveUserModal from "@/app/(main)/[id]/components/RemoveUserModal";
 
-interface DebtType {
+export interface DebtType {
   userId: string;
   name: string;
   balance: number;
@@ -74,16 +69,11 @@ export default function RoomExpenses() {
   const [shares, setShares] = useState<{ [key: string]: number }>({});
   const [expenseType, setExpenseType] = useState<string>(expenseTypes[0].value);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
-  const [isModalDelete, setIsModalDelete] = useState(false);
-  const [isModalEdit, setIsModalEdit] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
-  const [calculateDebt, setCalculateDebt] = useState<DebtType[]>([]);
   const [isModalRoomManager, setIsModalRoomManager] = useState(false);
   const [isModalAddUser, setIsModalAddUser] = useState(false);
+  const [isModalRemoveUser, setIsModalRemoveUser] = useState(false);
   const [isModalAddTele, setIsModalAddTele] = useState(false);
-
-  const { userInfor } = useUserContext();
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
 
   const fetchHouseInfor = async () => {
     setIsLoading(true);
@@ -100,15 +90,6 @@ export default function RoomExpenses() {
           );
           setShares(initialShares);
           setRoomMembers(houseInfo.member);
-        }
-
-        try {
-          const responseCalculate = await HouseService.calculateDebt(houseId);
-          if (responseCalculate.data) {
-            setCalculateDebt(responseCalculate.data.debt);
-          }
-        } catch (error) {
-          console.error("Lỗi khi tính toán dư nợ:", error);
         }
       }
     } catch (error) {
@@ -189,87 +170,6 @@ export default function RoomExpenses() {
     });
   };
 
-  const columns = [
-    {
-      title: "Người mua",
-      dataIndex: ["buyer", "name"],
-      key: "buyer",
-    },
-    {
-      title: "Tổng tiền",
-      dataIndex: "cost",
-      key: "cost",
-      render: (cost: number) =>
-        cost.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createAt",
-      key: "createAt",
-      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
-    },
-    {
-      title: "Ghi chú",
-      dataIndex: "note",
-      key: "note",
-      render: (note: string, record: IExpense) => {
-        const maxLength = 70;
-        const truncatedNote =
-          note.length > maxLength ? `${note.substring(0, maxLength)}...` : note;
-
-        return (
-          <div>
-            <Tag
-              color={
-                expenseTypes.find((item) => item.value === record.expenseType)
-                  ?.color
-              }
-            >
-              {
-                expenseTypes.find((item) => item.value === record.expenseType)
-                  ?.label
-              }
-            </Tag>
-            {truncatedNote}
-          </div>
-        );
-      },
-    },
-    ...(houseInfor?.member || []).map((member) => ({
-      title: member.name,
-      dataIndex: ["share", member._id],
-      key: member._id,
-      render: (share: number | undefined) => share || 0,
-    })),
-    {
-      title: "Hành động",
-      dataIndex: "action",
-      key: "action",
-      width: 150,
-      render: (text: string, record: IExpense) => (
-        <Space size="small">
-          <Button
-            icon={<SettingOutlined />}
-            onClick={() => {
-              setSelectedExpense(record);
-              setIsModalEdit(true);
-            }}
-            type="link"
-          ></Button>
-          <Button
-            icon={<UserDeleteOutlined />}
-            onClick={() => {
-              setSelectedExpense(record);
-              setIsModalDelete(true);
-            }}
-            type="link"
-            danger
-          ></Button>
-        </Space>
-      ),
-    },
-  ];
-
   const dropdownItems: MenuProps["items"] = [
     {
       key: "home",
@@ -287,7 +187,7 @@ export default function RoomExpenses() {
       key: "remove",
       label: "Xóa thành viên",
       icon: <UserDeleteOutlined />,
-      onClick: () => console.log("Remove member"),
+      onClick: () => setIsModalRemoveUser(true),
     },
     {
       key: "addTele",
@@ -295,34 +195,7 @@ export default function RoomExpenses() {
       icon: <UserDeleteOutlined />,
       onClick: () => setIsModalAddTele(true),
     },
-    {
-      key: "settle",
-      label: "Thanh toán dư nợ",
-      icon: <DollarOutlined />,
-      onClick: () => console.log("Settle debt"),
-    },
   ];
-
-  const handleDeleteExpenses = () => {
-    if (selectedExpense) {
-      setIsConfirmingDelete(true);
-      toast
-        .promise(HouseService.deleteExpense(selectedExpense._id), {
-          pending: `Chi tiêu đang được xóa `,
-          success: `Xóa chi tiêu thành công`,
-        })
-        .then(() => {
-          fetchHouseInfor();
-        })
-        .catch((error) => {
-          toast.error(error.response.data.message);
-        })
-        .finally(() => {
-          setIsConfirmingDelete(false);
-          setIsModalDelete(false);
-        });
-    }
-  };
 
   return (
     <motion.div
@@ -459,67 +332,28 @@ export default function RoomExpenses() {
             </Form>
 
             <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
-              <ExpenseChart houseId={houseId} />
-              <Card
-                title="Thông tin dư nợ"
-                className="w-full md:w-1/2 flex-grow"
-              >
-                {calculateDebt && calculateDebt.length > 0 ? (
-                  <div className="flex flex-col h-full justify-between">
-                    <ul className="list-none p-0 mb-4">
-                      {calculateDebt.map((member, index) => (
-                        <li
-                          key={index}
-                          className="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 last:border-b-0"
-                        >
-                          <span className="text-base md:text-lg font-medium">
-                            {member.name}
-                          </span>
-                          <div className="flex items-center">
-                            <span
-                              className={`text-base md:text-lg font-semibold ${
-                                member.balance > 0
-                                  ? "text-green-600"
-                                  : member.balance < 0
-                                  ? "text-red-600"
-                                  : "text-gray-600"
-                              }`}
-                            >
-                              {formatCurrency(member.balance)}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="Chưa có thông tin dư nợ"
-                  />
-                )}
-              </Card>
+              <ExpenseChart houseId={houseId} lastUpdated={lastUpdated} />
+              <ExpenseDebt houseId={houseId} lastUpdated={lastUpdated} />
             </div>
 
             <div className="overflow-x-auto">
-              <Table
-                columns={columns}
-                dataSource={houseInfor?.expenses || []}
-                scroll={{ x: "max-content" }}
+              <ExpenseTable
+                houseInfor={houseInfor}
+                roomMembers={roomMembers}
+                onUpdated={() => setLastUpdated(Date.now())}
               />
             </div>
-
-            <ConfirmPopup
-              isConfirming={isConfirmingDelete}
-              isModalDelete={isModalDelete}
-              handleDelete={handleDeleteExpenses}
-              setIsModalDelete={setIsModalDelete}
-              message={<p>Bạn có chắc chắn muốn xóa chi phí này không?</p>}
-            />
 
             <RoomManagerModal
               isModalVisible={isModalRoomManager}
               setIsModalVisible={setIsModalRoomManager}
+              onSuccessfullyCreated={fetchHouseInfor}
+              houseInfor={houseInfor}
+            />
+
+            <AddTelegramModal
+              isModalVisible={isModalAddTele}
+              setIsModalVisible={setIsModalAddTele}
               onSuccessfullyCreated={fetchHouseInfor}
               houseInfor={houseInfor}
             />
@@ -531,14 +365,11 @@ export default function RoomExpenses() {
               houseInfor={houseInfor}
             />
 
-            <EditExpenseModal
-              visible={isModalEdit}
-              onCancel={() => {
-                setIsModalEdit(false);
-              }}
-              onSuccessfullyCreated={fetchHouseInfor}
-              selectedExpense={selectedExpense}
-              roomMembers={roomMembers}
+            <RemoveUserModal
+              isModalVisible={isModalRemoveUser}
+              setIsModalVisible={setIsModalRemoveUser}
+              onSuccessfullyRemoved={fetchHouseInfor}
+              houseInfor={houseInfor}
             />
           </div>
         )}
