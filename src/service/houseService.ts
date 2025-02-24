@@ -80,6 +80,12 @@ async function addMember(payload: any) {
   return response;
 }
 
+async function addTeleInfo(payload: any) {
+  const response = await axiosInstance.post(`/api/addTeleInfo`, payload);
+
+  return response;
+}
+
 export const HouseService = {
   getListHouse,
   createHouse,
@@ -91,4 +97,5 @@ export const HouseService = {
   updateHouse,
   updateExpense,
   addMember,
+  addTeleInfo,
 };

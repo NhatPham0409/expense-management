@@ -29,14 +29,12 @@ function AddTelegramModal({
       try {
         const payload = {
           houseId: houseInfor?._id,
-          updateData: {
-            name: values.name,
-            des: values.des,
-          },
+          teleToken: values.teleToken,
+          teleId: values.teleId,
         };
 
         toast
-          .promise(HouseService.updateHouse(payload), {
+          .promise(HouseService.addTeleInfo(payload), {
             pending: "Đang xử lý dữ liệu",
           })
           .then((res) => {
@@ -62,18 +60,9 @@ function AddTelegramModal({
     setIsModalVisible(false);
   };
 
-  useEffect(() => {
-    if (houseInfor) {
-      form.setFieldsValue({
-        name: houseInfor.name,
-        des: houseInfor.des,
-      });
-    }
-  }, [houseInfor, form]);
-
   return (
     <Modal
-      title="Thay đổi thông tin phòng"
+      title="Liên kết telegram"
       open={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
@@ -98,14 +87,18 @@ function AddTelegramModal({
     >
       <Form form={form} layout="vertical">
         <Form.Item
-          name="name"
-          label="Tên phòng"
-          rules={[{ required: true, message: "Vui lòng nhập tên phòng!" }]}
+          name="teleToken"
+          label="Telegram token"
+          rules={[{ required: true, message: "Vui lòng nhập thông tin!" }]}
         >
           <Input />
         </Form.Item>
-        <Form.Item name="des" label="Mô tả">
-          <Input.TextArea />
+        <Form.Item
+          name="teleId"
+          label="Telegram ID"
+          rules={[{ required: true, message: "Vui lòng nhập thông tin!" }]}
+        >
+          <Input />
         </Form.Item>
       </Form>
     </Modal>

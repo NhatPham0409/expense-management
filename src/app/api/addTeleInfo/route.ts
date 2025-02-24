@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const { userId } = getUserIdFromToken(req);
     const house = await House.findById(houseId)
       .populate("member", "_id name")
-      .populate("admin", "_id name")
+      .populate("admin", "_id name");
 
     if (!house || Array.isArray(house)) {
       return NextResponse.json(

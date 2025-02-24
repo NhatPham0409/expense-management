@@ -43,6 +43,7 @@ import RoomManagerModal from "@/app/(main)/[id]/components/RoomManagerModal";
 import AddUserModal from "@/app/(main)/[id]/components/AddUserModal";
 import { useUserContext } from "@/app/app-provider";
 import EditExpenseModal from "@/app/(main)/[id]/components/EditExpenseModal";
+import AddTelegramModal from "@/app/(main)/[id]/components/AddTelegramModal";
 
 interface DebtType {
   userId: string;
@@ -303,6 +304,8 @@ export default function RoomExpenses() {
     },
   ];
 
+  console.log({ isModalAddTele });
+
   const handleDeleteExpenses = () => {
     if (selectedExpense) {
       setIsConfirmingDelete(true);
@@ -520,6 +523,13 @@ export default function RoomExpenses() {
             <RoomManagerModal
               isModalVisible={isModalRoomManager}
               setIsModalVisible={setIsModalRoomManager}
+              onSuccessfullyCreated={fetchHouseInfor}
+              houseInfor={houseInfor}
+            />
+
+            <AddTelegramModal
+              isModalVisible={isModalAddTele}
+              setIsModalVisible={setIsModalAddTele}
               onSuccessfullyCreated={fetchHouseInfor}
               houseInfor={houseInfor}
             />
