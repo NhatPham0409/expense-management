@@ -5,7 +5,6 @@ import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 
 export async function POST(req: NextRequest) {
   try {
-    // Kết nối MongoDB
     await connectDB();
 
     const { error, status } = getUserIdFromToken(req);
@@ -23,4 +22,3 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(id: string) {}

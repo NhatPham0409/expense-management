@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const { houseId, teleToken, teleId } = await req.json();
-    console.log(teleId, teleToken);
     const { userId } = getUserIdFromToken(req);
     const house = await House.findById(houseId)
       .populate("member", "_id name")
@@ -21,8 +20,6 @@ export async function POST(req: NextRequest) {
       );
     }
     const isMember = house.member.some((m: any) => {
-      console.log(m._id.toString());
-      console.log("userID", userId);
       return m._id.toString() === userId;
     });
     if (!isMember) {
@@ -40,7 +37,6 @@ export async function POST(req: NextRequest) {
     house.teleToken = teleToken;
     house.teleId = teleId;
 
-    console.log(house);
     await house.save();
     return NextResponse.json(
       { message: "Cập nhật thông tin Telegram bot thành công", house },
