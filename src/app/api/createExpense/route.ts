@@ -6,6 +6,8 @@ import { sendTeleMessage } from "@/utils/sendTeleMessage";
 import { NextRequest, NextResponse } from "next/server";
 import House from "@/models/House";
 import User from "@/models/User";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { expenseTypes } from "@/utils/constant";
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,10 +44,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const teleToken = house.teleToken;
     const teleId = house.teleId;
-    console.log(teleId, teleToken);
+    let expenseConvert = "";
 
+    expenseTypes.map((item) => {
+      if (item.value === expenseType) {
+        expenseConvert = item.label;
+      }
+    });
     const newExpense = new Expense({
       idHouse,
       buyer,
@@ -61,12 +67,12 @@ export async function POST(req: NextRequest) {
     const teleMessage = `
     <b>${user.name}</b> vừa thêm chi tiêu cho nhà <b>${house.name}</b>.\n
     <b>👤 Người mua:</b> <i>${buyerName.name}</i>\n
-    <b>💰 Số tiền:</b> <b style="color:green;">${cost} VND</b>\n
-    <b>📌 Loại chi tiêu:</b> ${expenseType}\n
+    <b>💰 Số tiền:</b> <b style="color:green;">${formatCurrency(cost)} VND</b>\n
+    <b>📌 Loại chi tiêu:</b> ${expenseConvert}\n
     <b>📊 Tỉ lệ:</b> ${shareMessage}
   `;
-    if (teleToken && teleId) {
-      // sendTeleMessage(teleToken, teleId, teleMessage);
+    if (teleId) {
+      sendTeleMessage(teleId, teleMessage);
     }
     return NextResponse.json(
       { message: "Tạo expense thành công", expense: newExpense },
