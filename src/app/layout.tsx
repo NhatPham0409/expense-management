@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { ConfigProvider } from "antd";
 import type React from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import ToastNotifications from "@/app/components/ToastNotifications";
+import ToastNotifications from "@/components/ToastNotifications";
 import { AppProvider } from "@/app/app-provider";
 
 const inter = Inter({ subsets: ["latin"] });

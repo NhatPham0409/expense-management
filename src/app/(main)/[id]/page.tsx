@@ -40,6 +40,9 @@ import { toast } from "react-toastify";
 import ConfirmPopup from "@/components/ConfirmPopup";
 import { expenseTypes } from "@/utils/constant";
 import RoomManagerModal from "@/app/(main)/[id]/components/RoomManagerModal";
+import AddUserModal from "@/app/(main)/[id]/components/AddUserModal";
+import { useUserContext } from "@/app/app-provider";
+import EditExpenseModal from "@/app/(main)/[id]/components/EditExpenseModal";
 
 interface DebtType {
   userId: string;
@@ -73,10 +76,14 @@ export default function RoomExpenses() {
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [isModalDelete, setIsModalDelete] = useState(false);
+  const [isModalEdit, setIsModalEdit] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
   const [calculateDebt, setCalculateDebt] = useState<DebtType[]>([]);
   const [isModalRoomManager, setIsModalRoomManager] = useState(false);
   const [isModalAddUser, setIsModalAddUser] = useState(false);
+  const [isModalAddTele, setIsModalAddTele] = useState(false);
+
+  const { userInfor } = useUserContext();
 
   const fetchHouseInfor = async () => {
     setIsLoading(true);
@@ -132,7 +139,7 @@ export default function RoomExpenses() {
           >
             <span>{member.name}</span>
             <Select
-              value={shares[member._id] || 1}
+              value={shares[member._id] ?? 1}
               onChange={(value) => handleShareChange(member._id, value)}
               style={{ width: 100, textAlign: "center" }}
             >
@@ -148,7 +155,7 @@ export default function RoomExpenses() {
     </Form.Item>
   );
 
-  const handleAddExpense = (values: any) => {
+  const handleAddExpense = () => {
     form.validateFields().then((values) => {
       setIsConfirming(true);
       try {
@@ -205,22 +212,28 @@ export default function RoomExpenses() {
       title: "Ghi chú",
       dataIndex: "note",
       key: "note",
-      render: (note: string, record: IExpense) => (
-        <div>
-          <Tag
-            color={
-              expenseTypes.find((item) => item.value === record.expenseType)
-                ?.color
-            }
-          >
-            {
-              expenseTypes.find((item) => item.value === record.expenseType)
-                ?.label
-            }
-          </Tag>
-          {note}
-        </div>
-      ),
+      render: (note: string, record: IExpense) => {
+        const maxLength = 70;
+        const truncatedNote =
+          note.length > maxLength ? `${note.substring(0, maxLength)}...` : note;
+
+        return (
+          <div>
+            <Tag
+              color={
+                expenseTypes.find((item) => item.value === record.expenseType)
+                  ?.color
+              }
+            >
+              {
+                expenseTypes.find((item) => item.value === record.expenseType)
+                  ?.label
+              }
+            </Tag>
+            {truncatedNote}
+          </div>
+        );
+      },
     },
     ...(houseInfor?.member || []).map((member) => ({
       title: member.name,
@@ -237,7 +250,10 @@ export default function RoomExpenses() {
         <Space size="small">
           <Button
             icon={<SettingOutlined />}
-            onClick={() => handleEdit(record)}
+            onClick={() => {
+              setSelectedExpense(record);
+              setIsModalEdit(true);
+            }}
             type="link"
           ></Button>
           <Button
@@ -265,13 +281,19 @@ export default function RoomExpenses() {
       key: "add",
       label: "Thêm thành viên",
       icon: <UserAddOutlined />,
-      onClick: () => console.log("Add member"),
+      onClick: () => setIsModalAddUser(true),
     },
     {
       key: "remove",
       label: "Xóa thành viên",
       icon: <UserDeleteOutlined />,
       onClick: () => console.log("Remove member"),
+    },
+    {
+      key: "addTele",
+      label: "Liên kết telegram",
+      icon: <UserDeleteOutlined />,
+      onClick: () => setIsModalAddTele(true),
     },
     {
       key: "settle",
@@ -281,17 +303,13 @@ export default function RoomExpenses() {
     },
   ];
 
-  const handleEdit = (record: IExpense) => {
-    console.log("Chỉnh sửa:", record);
-  };
-
   const handleDeleteExpenses = () => {
     if (selectedExpense) {
       setIsConfirmingDelete(true);
       toast
         .promise(HouseService.deleteExpense(selectedExpense._id), {
-          pending: `Từ khoá đang được xóa `,
-          success: `Xóa từ khoá thành công`,
+          pending: `Chi tiêu đang được xóa `,
+          success: `Xóa chi tiêu thành công`,
         })
         .then(() => {
           fetchHouseInfor();
@@ -504,6 +522,23 @@ export default function RoomExpenses() {
               setIsModalVisible={setIsModalRoomManager}
               onSuccessfullyCreated={fetchHouseInfor}
               houseInfor={houseInfor}
+            />
+
+            <AddUserModal
+              isModalVisible={isModalAddUser}
+              setIsModalVisible={setIsModalAddUser}
+              onSuccessfullyCreated={fetchHouseInfor}
+              houseInfor={houseInfor}
+            />
+
+            <EditExpenseModal
+              visible={isModalEdit}
+              onCancel={() => {
+                setIsModalEdit(false);
+              }}
+              onSuccessfullyCreated={fetchHouseInfor}
+              selectedExpense={selectedExpense}
+              roomMembers={roomMembers}
             />
           </div>
         )}
