@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
-    console.log("house", house.member);
     const isMember = house.member.some((m: any) => {
       console.log(m._id.toString());
       console.log("userID", userId);
@@ -32,17 +31,10 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
-    const expenses = await Expense.find({ idHouse: houseId })
-      .populate("createBy", "_id name")
-      .populate("buyer", "_id name")
-      .lean();
 
     return NextResponse.json(
       {
-        houseInfo: {
-          ...house,
-          expenses,
-        },
+        houseInfo: house,
       },
       { status: 200 }
     );
