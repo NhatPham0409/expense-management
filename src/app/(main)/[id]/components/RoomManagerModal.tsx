@@ -77,24 +77,9 @@ function RoomManagerModal({
       open={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
-      okButtonProps={{ disabled: isConfirming }}
-      cancelText={
-        <p>
-          <span className="ml-1">Hủy</span>
-        </p>
-      }
-      okText={
-        isConfirming ? (
-          <div>
-            <Spin indicator={<LoadingOutlined />} size="small" />
-            <span className="ml-2">Đang xử lý</span>
-          </div>
-        ) : (
-          <p>
-            <span className="ml-1">Thêm</span>
-          </p>
-        )
-      }
+      cancelText="Hủy"
+      okText="Thêm"
+      confirmLoading={isConfirming}
     >
       <Form form={form} layout="vertical">
         <Form.Item

@@ -40,7 +40,7 @@ const EditExpenseModal = ({
 
   useEffect(() => {
     if (selectedExpense) {
-      setShares(Object.fromEntries(selectedExpense.share));
+      setShares(selectedExpense.share);
       setExpenseType(selectedExpense.expenseType);
       form.setFieldsValue({
         buyer: selectedExpense.buyer._id,

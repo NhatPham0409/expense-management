@@ -29,7 +29,6 @@ function AddTelegramModal({
       try {
         const payload = {
           houseId: houseInfor?._id,
-          teleToken: values.teleToken,
           teleId: values.teleId,
         };
 
@@ -66,39 +65,17 @@ function AddTelegramModal({
       open={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
-      okButtonProps={{ disabled: isConfirming }}
-      cancelText={
-        <p>
-          <span className="ml-1">Hủy</span>
-        </p>
-      }
-      okText={
-        isConfirming ? (
-          <div>
-            <Spin indicator={<LoadingOutlined />} size="small" />
-            <span className="ml-2">Đang xử lý</span>
-          </div>
-        ) : (
-          <p>
-            <span className="ml-1">Thêm</span>
-          </p>
-        )
-      }
+      okText="Liên kết"
+      cancelText="Hủy"
+      confirmLoading={isConfirming}
     >
       <Form form={form} layout="vertical">
-        <Form.Item
-          name="teleToken"
-          label="Telegram token"
-          rules={[{ required: true, message: "Vui lòng nhập thông tin!" }]}
-        >
-          <Input />
-        </Form.Item>
         <Form.Item
           name="teleId"
           label="Telegram ID"
           rules={[{ required: true, message: "Vui lòng nhập thông tin!" }]}
         >
-          <Input />
+          <Input placeholder="Nhập thông tin" />
         </Form.Item>
       </Form>
     </Modal>

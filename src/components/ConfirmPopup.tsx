@@ -1,5 +1,6 @@
-import { Modal } from "antd";
+import { Modal, Spin } from "antd";
 import React, { ReactElement } from "react";
+import { LoadingOutlined } from "@ant-design/icons";
 
 interface ConfirmPopupProp {
   isModalDelete: boolean;
@@ -23,26 +24,9 @@ const ConfirmPopup = ({
         open={isModalDelete}
         onOk={handleDelete}
         onCancel={() => setIsModalDelete(false)}
-        okButtonProps={{ disabled: isConfirming }}
-        cancelText={
-          <p>
-            <i className="fa-solid fa-ban"></i>
-            <span className="ml-1">Hủy</span>
-          </p>
-        }
-        okText={
-          isConfirming ? (
-            <div className="flex items-center justify-center gap-2">
-              <i className="fa-solid fa-spinner fa-spin"></i>
-              <span>Đang xử lý</span>
-            </div>
-          ) : (
-            <p>
-              <i className="fa-solid fa-check"></i>
-              <span className="ml-1">Xác nhận</span>
-            </p>
-          )
-        }
+        cancelText="Hủy"
+        okText="Xử lý"
+        confirmLoading={isConfirming}
       >
         {message}
       </Modal>
