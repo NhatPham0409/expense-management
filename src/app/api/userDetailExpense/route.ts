@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     const filter: any = {
       idHouse: { $in: houseIds },
-      [`share.${userId}`]: { $exists: true }, 
+      [`share.${userId}`]: { $exists: true },
     };
 
     if (year && !month) {

@@ -104,7 +104,7 @@ function ExpenseChart({
 
   const pieOptions = {
     responsive: true,
-    maintainAspectRatio: true, // Giữ tỷ lệ khung hình
+    maintainAspectRatio: true,
     plugins: {
       legend: {
         position: "top" as const,
@@ -222,7 +222,8 @@ function ExpenseChart({
       label: "Thống kê theo loại",
       children: isLoading ? (
         <LoadingData />
-      ) : houseStatistic.totalByType ? (
+      ) : houseStatistic.totalByType &&
+        Object.keys(houseStatistic.totalByType).length > 0 ? (
         <div
           style={{
             height: "40vh",
