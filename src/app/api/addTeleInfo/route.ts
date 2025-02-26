@@ -7,7 +7,7 @@ import User from "@/models/User";
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const { houseId, teleToken, teleId } = await req.json();
+    const { houseId, teleId } = await req.json();
     const { userId } = getUserIdFromToken(req);
     const house = await House.findById(houseId)
       .populate("member", "_id name")
@@ -28,13 +28,12 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
-    if (!houseId || !teleToken || !teleId) {
+    if (!houseId || !teleId) {
       return NextResponse.json(
-        { message: "Thiếu thông tin houseId, teleToken hoặc teleId" },
+        { message: "Thiếu thông tin houseId hoặc teleId" },
         { status: 400 }
       );
     }
-    house.teleToken = teleToken;
     house.teleId = teleId;
 
     await house.save();

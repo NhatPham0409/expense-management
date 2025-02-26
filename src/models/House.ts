@@ -8,7 +8,6 @@ const HouseSchema: Schema = new Schema({
   des: { type: String },
   member: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   admin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  teleToken: { type: String },
   teleId: { type: String },
 });
 
