@@ -1,4 +1,5 @@
 import User from "@/models/User";
+import { IUser } from "@/types/user.type";
 import connectDB from "@/utils/db";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { message } from "antd";
@@ -10,7 +11,10 @@ export async function POST(req: NextRequest) {
     const { userId } = getUserIdFromToken(req);
     const user = await User.findById(userId, "_id email name");
     if (!user) {
-      return NextResponse.json({ message: "Không tìm thấy người dùng!" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Không tìm thấy người dùng!" },
+        { status: 401 }
+      );
     }
     return NextResponse.json({ user }, { status: 200 });
   } catch (error) {

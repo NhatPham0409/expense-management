@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
       filter.createAt = { $gte: startDate, $lt: endDate };
     }
 
+    // isGetTotal = true
+
     const totalExpense = await Expense.countDocuments(filter);
     const totalPage = Math.ceil(totalExpense / limit);
     const expenses = await Expense.find(filter)

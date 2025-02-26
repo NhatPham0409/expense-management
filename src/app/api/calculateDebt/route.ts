@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const { houseId } = await req.json();
     const house = await House.findById(houseId).populate("member", "_id name");
-    if (!house || Array.isArray(house)) {
+    if (!house) {
       return NextResponse.json(
         { message: "Nhà không tồn tại" },
         { status: 404 }

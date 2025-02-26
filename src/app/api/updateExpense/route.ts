@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(updateData);
     const expense = await Expense.findById(idExpense).populate("buyer");
     if (!expense) {
       return NextResponse.json(
@@ -58,7 +57,6 @@ export async function POST(req: NextRequest) {
       updateData.cost || expense.cost
     )} VND</b>\n
   `;
-    console.log(expense);
     if (house.teleId) {
       sendTeleMessage(house.teleId, teleMessage);
     }

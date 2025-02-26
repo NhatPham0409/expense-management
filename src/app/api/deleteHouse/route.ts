@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { userId } = getUserIdFromToken(req);
     const { houseId } = await req.json();
     const house = await House.findById(houseId);
-    if (!house || Array.isArray(house)) {
+    if (!house) {
       return NextResponse.json(
         { message: "Nhà không tồn tại" },
         { status: 404 }

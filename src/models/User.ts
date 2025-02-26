@@ -7,8 +7,7 @@ export interface IUserModel extends Document {
   email: string;
 }
 
-
-const UserSchema: Schema = new Schema({
+const UserSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
@@ -16,4 +15,4 @@ const UserSchema: Schema = new Schema({
 });
 
 export default mongoose.models.User ||
-  mongoose.model<IUserModel>("User", UserSchema);
+  mongoose.model<IUser>("User", UserSchema);

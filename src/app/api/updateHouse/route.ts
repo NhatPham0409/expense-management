@@ -1,5 +1,6 @@
 import Expense from "@/models/Expense";
-import House from "@/models/House";
+import House, { IHouseModal } from "@/models/House";
+import { IUser } from "@/types/user.type";
 import connectDB from "@/utils/db";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { message } from "antd";
@@ -17,16 +18,17 @@ export async function POST(req: NextRequest) {
     }
     const { houseId, updateData } = await req.json();
     const house = await House.findById(houseId)
-      .populate("member", "_id name")
-      .populate("admin", "_id name")
-      .lean();
-    if (!house || Array.isArray(house)) {
+      // .populate("member", "_id name")
+      // .populate("admin", "_id name")
+      // .exec();
+    if (!house) {
       return NextResponse.json(
         { message: "Nhà không tồn tại" },
         { status: 404 }
       );
     }
-    const isMember = house.member.some((m: any) => {
+    console.log("house", house);
+    const isMember = house.member.some((m: IUser) => {
       return m._id.toString() === userId;
     });
     if (!isMember) {
