@@ -24,6 +24,14 @@ async function createHouse({
   return response;
 }
 
+async function deleteHouse(houseId: string) {
+  const response = await axiosInstance.post(`/api/deleteHouse`, {
+    houseId,
+  });
+
+  return response;
+}
+
 async function updateHouse(payload: any) {
   const response = await axiosInstance.post(`/api/updateHouse`, payload);
 
@@ -88,10 +96,18 @@ async function calculateDebt(houseId: string) {
   return response;
 }
 
-async function statistic(houseId: string) {
-  const response = await axiosInstance.post(`/api/statistic`, {
-    houseId,
-  });
+async function statistic(houseId: string, year?: number, month?: number) {
+  let payload: any = { houseId };
+
+  if (year !== undefined) {
+    payload = { ...payload, year };
+  }
+
+  if (month !== undefined) {
+    payload = { ...payload, month };
+  }
+
+  const response = await axiosInstance.post(`/api/statistic`, payload);
 
   return response;
 }
@@ -128,4 +144,5 @@ export const HouseService = {
   addTeleInfo,
   getListExpenseOfHouse,
   deleteMember,
+  deleteHouse,
 };

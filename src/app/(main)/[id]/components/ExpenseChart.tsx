@@ -1,17 +1,53 @@
 import { HouseService } from "@/service";
 import { expenseTypes } from "@/utils/constant";
-import { Pie, Column } from "@ant-design/charts";
 import { Card, Empty, Tabs } from "antd";
 import React, { useEffect, useState } from "react";
 import LoadingData from "@/components/LoadingData";
-import { formatCurrency } from "@/utils/utils";
+import { Pie, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from "chart.js";
+import { generateColors } from "@/utils/utils";
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement
+);
 
 interface ExpenseChartProps {
   houseId: string | undefined;
   lastUpdated: number;
+  year?: number | null;
+  month?: number | null;
 }
 
-function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
+interface UserData {
+  type: string;
+  value: number;
+}
+
+interface TypeData {
+  type: string;
+  value: number;
+  color?: string;
+}
+
+function ExpenseChart({
+  houseId,
+  lastUpdated,
+  year,
+  month,
+}: ExpenseChartProps) {
   const [houseStatistic, setHouseStatistic] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,7 +55,11 @@ function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
     setIsLoading(true);
     try {
       if (houseId) {
-        const response = await HouseService.statistic(houseId);
+        const response = await HouseService.statistic(
+          houseId,
+          year ?? undefined,
+          month ?? undefined
+        );
         if (response.data) {
           setHouseStatistic(response.data);
         }
@@ -33,15 +73,17 @@ function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
 
   useEffect(() => {
     fetchHouseStatistic();
-  }, [houseId, lastUpdated]);
+  }, [houseId, lastUpdated, year, month]);
 
-  const userData = houseStatistic.totalByUser?.map((item: any) => ({
-    type: item.name,
-    value: item.totalSpent,
-    color: item.name,
-  }));
+  const userData: UserData[] =
+    houseStatistic.totalByUser?.map((item: any) => ({
+      type: item.name,
+      value: item.totalSpent,
+    })) || [];
 
-  const typeData = Object.keys(houseStatistic.totalByType || {}).map((key) => {
+  const typeData: TypeData[] = Object.keys(
+    houseStatistic.totalByType || {}
+  ).map((key) => {
     const expense = expenseTypes.find((item) => item.value === key);
     return {
       type: expense ? expense.label : key,
@@ -49,40 +91,105 @@ function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
     };
   });
 
-  const pieConfig = {
-    data: typeData || [],
-    angleField: "value",
-    colorField: "type",
-    label: {
-      text: (originData: any) => {
-        return formatCurrency(originData.value);
+  const pieData = {
+    labels: typeData.map((item) => item.type),
+    datasets: [
+      {
+        label: "Chi phí theo loại",
+        data: typeData.map((item) => item.value),
+        backgroundColor: generateColors(typeData.length),
       },
-      style: {
-        fontWeight: "bold",
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: true, // Giữ tỷ lệ khung hình
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          generateLabels: (chart: any) => {
+            const { data } = chart;
+            return data.labels.map((label: string, index: number) => ({
+              text: label,
+              fillStyle: data.datasets[0].backgroundColor[index],
+              hidden: !chart.getDataVisibility(index),
+              index,
+            }));
+          },
+        },
+        onClick: (e: any, legendItem: any, legend: any) => {
+          const index = legendItem.index;
+          const ci = legend.chart;
+          ci.toggleDataVisibility(index);
+          ci.update();
+        },
       },
-    },
-    legend: {
-      position: "bottom",
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const label = context.chart.data.labels[context.dataIndex];
+            const value = context.raw;
+            return `${label}: ${value}`;
+          },
+        },
+      },
     },
   };
 
-  const columnConfig = {
-    data: userData || [],
-    xField: "type",
-    yField: "value",
-    colorField: "color",
-    label: {
-      position: "top",
-      style: {
-        fontSize: 14,
-        fontWeight: "bold",
-        color: "white",
+  const barData = {
+    labels: userData.map((user) => user.type),
+    datasets: [
+      {
+        label: "Chi phí",
+        data: userData.map((user) => user.value),
+        backgroundColor: generateColors(userData.length),
+        barThickness: 40,
       },
-      text: (originData: any) => {
-        return formatCurrency(originData.value);
+    ],
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          generateLabels: (chart: any) => {
+            const { data } = chart;
+            return data.labels.map((label: string, index: number) => ({
+              text: label,
+              fillStyle: data.datasets[0].backgroundColor[index],
+              hidden: !chart.getDataVisibility(index),
+              index,
+            }));
+          },
+        },
+        onClick: (e: any, legendItem: any, legend: any) => {
+          const index = legendItem.index;
+          const ci = legend.chart;
+          ci.toggleDataVisibility(index);
+          ci.update();
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const label = context.chart.data.labels[context.dataIndex];
+            const value = context.raw;
+            return `${label}: ${value}`;
+          },
+        },
       },
     },
-    legend: false,
+    scales: {
+      x: { stacked: false },
+      y: { beginAtZero: true },
+    },
   };
 
   const tabItems = [
@@ -92,7 +199,17 @@ function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
       children: isLoading ? (
         <LoadingData />
       ) : houseStatistic.totalByUser?.length ? (
-        <Column {...columnConfig} />
+        <div
+          style={{
+            height: "40vh",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Bar data={barData} options={barOptions} />
+        </div>
       ) : (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -106,7 +223,17 @@ function ExpenseChart({ houseId, lastUpdated }: ExpenseChartProps) {
       children: isLoading ? (
         <LoadingData />
       ) : houseStatistic.totalByType ? (
-        <Pie {...pieConfig} />
+        <div
+          style={{
+            height: "40vh",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Pie data={pieData} options={pieOptions} />
+        </div>
       ) : (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
