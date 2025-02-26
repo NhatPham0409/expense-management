@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Layout, Dropdown, Avatar, Button, Spin } from "antd";
 import Image from "next/image";
-import { LogoutOutlined, LockOutlined } from "@ant-design/icons";
+import { LogoutOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import { UserService } from "@/service";
 import { clearLocalToken } from "@/utils/localToken";
 import ChangePasswordModal from "./ChangePasswordModal";
@@ -50,12 +50,18 @@ export default function AppHeader() {
   const dropdownItems = [
     {
       key: "1",
+      label: "Trang cá nhân",
+      icon: <UserOutlined />,
+      onClick: () => router.push("/trang-ca-nhan"),
+    },
+    {
+      key: "2",
       label: "Đổi mật khẩu",
       icon: <LockOutlined />,
       onClick: handleChangePassword,
     },
     {
-      key: "2",
+      key: "3",
       label: "Đăng xuất",
       icon: <LogoutOutlined />,
       onClick: handleLogout,

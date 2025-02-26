@@ -61,7 +61,7 @@ function AddTelegramModal({
 
   return (
     <Modal
-      title="Liên kết telegram"
+      title="Đăng ký bot chat Telegram"
       open={isModalVisible}
       onOk={handleOk}
       onCancel={handleCancel}
@@ -78,6 +78,33 @@ function AddTelegramModal({
           <Input placeholder="Nhập thông tin" />
         </Form.Item>
       </Form>
+      <div className="max-w-2xl mx-auto bg-white rounded-lg ">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Hướng dẫn đăng ký bot chat Telegram
+        </h2>
+        <ol className="list-decimal list-inside text-gray-700 space-y-2">
+          <li>
+            Đăng nhập <strong>Telegram</strong>, tìm{" "}
+            <span className="font-semibold text-blue-600">@expManage_bot</span>{" "}
+            để thêm vào nhóm.
+          </li>
+          <li>
+            Nhắn vào nhóm{" "}
+            <code className="bg-gray-100 px-2 py-1 rounded-md">/getId</code> để
+            lấy Id của chat.
+          </li>
+          <li>
+            Sao chép <strong>Id</strong> (kể cả dấu{" "}
+            <code className="bg-gray-100 px-2 py-1 rounded-md">-</code>) và dán
+            vào ô nhập bên trên.
+          </li>
+        </ol>
+        <p className="mt-4 text-gray-700">
+          <span className="font-semibold">Bot chat Telegram</span> sẽ thông báo
+          cho bạn khi có phát sinh thêm, xoá hoặc sửa chi tiêu trong nhà và
+          nhiều tính năng khác.
+        </p>
+      </div>
     </Modal>
   );
 }

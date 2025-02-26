@@ -28,7 +28,7 @@ import {
 import ExpenseChart from "@/app/(main)/[id]/components/ExpenseChart";
 import type { IHouse } from "@/types/house.type";
 import { HouseService } from "@/service";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { expenseTypes } from "@/utils/constant";
@@ -38,6 +38,9 @@ import AddTelegramModal from "@/app/(main)/[id]/components/AddTelegramModal";
 import ExpenseTable from "@/app/(main)/[id]/components/ExpenseTable";
 import ExpenseDebt from "@/app/(main)/[id]/components/ExpenseDebt";
 import RemoveUserModal from "@/app/(main)/[id]/components/RemoveUserModal";
+import { useUserContext } from "@/app/app-provider";
+import ConfirmPopup from "@/components/ConfirmPopup";
+import ExpenseFilter from "@/app/(main)/[id]/components/ExpenseFilter";
 
 export interface DebtType {
   userId: string;
@@ -60,6 +63,7 @@ const { Title } = Typography;
 const { Option } = Select;
 
 export default function RoomExpenses() {
+  const router = useRouter();
   const [form] = Form.useForm();
   const [houseInfor, setHouseInfor] = useState<IHouse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -69,11 +73,26 @@ export default function RoomExpenses() {
   const [shares, setShares] = useState<{ [key: string]: number }>({});
   const [expenseType, setExpenseType] = useState<string>(expenseTypes[0].value);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  const [isModalRoomManager, setIsModalRoomManager] = useState(false);
-  const [isModalAddUser, setIsModalAddUser] = useState(false);
-  const [isModalRemoveUser, setIsModalRemoveUser] = useState(false);
-  const [isModalAddTele, setIsModalAddTele] = useState(false);
+  const [isModalRoomManager, setIsModalRoomManager] = useState<boolean>(false);
+  const [isModalAddUser, setIsModalAddUser] = useState<boolean>(false);
+  const [isModalRemoveUser, setIsModalRemoveUser] = useState<boolean>(false);
+  const [isModalAddTele, setIsModalAddTele] = useState<boolean>(false);
+  const [isModalDeleteRoom, setIsModalDeleteRoom] = useState<boolean>(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [year, setYear] = useState<number | null>(null);
+  const [month, setMonth] = useState<number | null>(null);
+
+  const handleFilter = (
+    selectedYear: number | null,
+    selectedMonth: number | null
+  ) => {
+    setYear(selectedYear);
+    setMonth(selectedMonth);
+    setLastUpdated(Date.now());
+  };
+
+  const { userInfor } = useUserContext();
 
   const fetchHouseInfor = async () => {
     setIsLoading(true);
@@ -170,6 +189,14 @@ export default function RoomExpenses() {
     });
   };
 
+  const checkIfUserIsAdmin = (): boolean => {
+    if (!userInfor || !houseInfor) {
+      return false;
+    }
+
+    return userInfor._id === houseInfor.admin._id;
+  };
+
   const dropdownItems: MenuProps["items"] = [
     {
       key: "home",
@@ -183,12 +210,22 @@ export default function RoomExpenses() {
       icon: <UserAddOutlined />,
       onClick: () => setIsModalAddUser(true),
     },
-    {
-      key: "remove",
-      label: "Xóa thành viên",
-      icon: <UserDeleteOutlined />,
-      onClick: () => setIsModalRemoveUser(true),
-    },
+    ...(checkIfUserIsAdmin()
+      ? [
+          {
+            key: "remove",
+            label: "Xóa thành viên",
+            icon: <UserDeleteOutlined />,
+            onClick: () => setIsModalRemoveUser(true),
+          },
+          {
+            key: "removeRoom",
+            label: "Xóa phòng",
+            icon: <UserDeleteOutlined />,
+            onClick: () => setIsModalDeleteRoom(true),
+          },
+        ]
+      : []),
     {
       key: "addTele",
       label: "Liên kết telegram",
@@ -196,6 +233,27 @@ export default function RoomExpenses() {
       onClick: () => setIsModalAddTele(true),
     },
   ];
+
+  const handleDeleteRoom = () => {
+    if (houseInfor) {
+      setIsConfirmingDelete(true);
+      toast
+        .promise(HouseService.deleteHouse(houseInfor._id), {
+          pending: `Phòng đang được xóa`,
+          success: `Xóa phòng thành công`,
+        })
+        .then(() => {
+          router.push(`/`);
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        })
+        .finally(() => {
+          setIsConfirmingDelete(false);
+          setIsModalDeleteRoom(false);
+        });
+    }
+  };
 
   return (
     <motion.div
@@ -331,8 +389,15 @@ export default function RoomExpenses() {
               </Row>
             </Form>
 
+            <ExpenseFilter onFilter={handleFilter} />
+
             <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
-              <ExpenseChart houseId={houseId} lastUpdated={lastUpdated} />
+              <ExpenseChart
+                houseId={houseId}
+                lastUpdated={lastUpdated}
+                year={year}
+                month={month}
+              />
               <ExpenseDebt houseId={houseId} lastUpdated={lastUpdated} />
             </div>
 
@@ -341,6 +406,8 @@ export default function RoomExpenses() {
                 houseInfor={houseInfor}
                 roomMembers={roomMembers}
                 onUpdated={() => setLastUpdated(Date.now())}
+                year={year}
+                month={month}
               />
             </div>
 
@@ -370,6 +437,14 @@ export default function RoomExpenses() {
               setIsModalVisible={setIsModalRemoveUser}
               onSuccessfullyRemoved={fetchHouseInfor}
               houseInfor={houseInfor}
+            />
+
+            <ConfirmPopup
+              isConfirming={isConfirmingDelete}
+              isModalDelete={isModalDeleteRoom}
+              handleDelete={handleDeleteRoom}
+              setIsModalDelete={setIsModalDeleteRoom}
+              message={<p>Bạn có chắc chắn muốn xóa phòng này không?</p>}
             />
           </div>
         )}

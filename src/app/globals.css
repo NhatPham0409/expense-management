@@ -19,3 +19,11 @@ body {
   background: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.ant-collapse-expand-icon {
+  display: none !important;
+}
+
+.ant-collapse-header {
+  padding: 0 !important;
+}
