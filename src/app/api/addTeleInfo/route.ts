@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       .populate("member", "_id name")
       .populate("admin", "_id name");
 
-    if (!house) {
+    if (!house ||Array.isArray(house)) {
       return NextResponse.json(
         { message: "Nhà không tồn tại" },
         { status: 404 }
