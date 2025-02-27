@@ -2,9 +2,12 @@ import Expense from "@/models/Expense";
 import House from "@/models/House";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import { NextRequest, NextResponse } from "next/server";
+import User from "@/models/User"; // Đảm bảo User được import trước khi populate
+import connectDB from "@/utils/db";
 
 export async function POST(req: NextRequest) {
   try {
+    connectDB();
     const { userId } = await getUserIdFromToken(req);
     const { page = 1, limit = 20, year, month } = await req.json();
 
@@ -43,9 +46,18 @@ export async function POST(req: NextRequest) {
       .limit(limit)
       .lean();
 
-    const result = expenses.map((expense) => {
-      
-      return expense;
+    const result: any = [];
+    expenses.forEach((expense) => {
+      const { share, cost } = expense;
+      if (share[userId]) {
+        const totalShare: any = Object.values(share).reduce(
+          (sum: any, val) => sum + val,
+          0
+        );
+        const perUnitCost = cost / totalShare;
+        expense.cost = perUnitCost * share[userId];
+        result.push(expense);
+      }
     });
 
     const totalPages = Math.ceil(totalRecords / limit);

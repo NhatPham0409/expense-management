@@ -1,6 +1,4 @@
-import { ICustomExpenseType } from "@/types/customExpenseType.type";
 import { IIncome } from "@/types/income.type";
-import { IPersonalExpense } from "@/types/personalExpense.type";
 import mongoose, { Schema } from "mongoose";
 
 const IncomeSchema: Schema<IIncome> = new Schema({

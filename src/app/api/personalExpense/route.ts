@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     const expenses = await PersonalExpense.find({ userId })
-      .populate("expenseType", "name")
+      .populate("expenseType")
       .lean();
 
     return NextResponse.json({ expenses }, { status: 200 });
