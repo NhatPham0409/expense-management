@@ -2,10 +2,8 @@ import { IPersonalExpense } from "@/types/personalExpense.type";
 import mongoose, { Schema } from "mongoose";
 
 const PersonalExpenseSchema: Schema<IPersonalExpense> = new Schema({
-  expenseType: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "CustomExpenseType",
-  },
+  expenseType: { type: String },
+
   note: { type: String },
   cost: { type: Number, required: true },
   userId: {

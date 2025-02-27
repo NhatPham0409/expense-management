@@ -1,12 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { IUser } from "../types/user.type";
-
-export interface IUserModel extends Document {
-  _id: Object; // Khai báo rõ ràng kiểu của _id
-  name: string;
-  email: string;
-}
-
 const UserSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
