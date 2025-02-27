@@ -1,4 +1,4 @@
-import CustomExpenseType from "@/models/CustomExpenseType";
+import CostEstimate from "@/models/CostEstimate";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import connectDB from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,11 +14,12 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
-    const customExpenseType = await CustomExpenseType.find({ userId: userId });
 
-    return NextResponse.json({ customExpenseType }, { status: 200 });
+    const costEstimates = await CostEstimate.find({ userId }).lean();
+
+    return NextResponse.json({ costEstimates }, { status: 200 });
   } catch (error) {
-    console.error("Lỗi khi tạo CustomExpenseType:", error);
+    console.error("Lỗi khi lấy danh sách dự kiến chi tiêu:", error);
     return NextResponse.json({ message: "Lỗi server!" }, { status: 500 });
   }
 }
