@@ -11,6 +11,7 @@ import UserExpenseChart from "@/app/(main)/trang-ca-nhan/components/UserExpenseC
 import LoadingData from "@/components/LoadingData";
 import HomeExpenseTable from "@/app/(main)/trang-ca-nhan/components/HomeExpenseTable";
 import UserExpenseTable from "@/app/(main)/trang-ca-nhan/components/UserExpenseTable";
+import UserIncome from "@/app/(main)/trang-ca-nhan/components/UserIncome";
 
 const { Title, Text } = Typography;
 
@@ -155,12 +156,8 @@ function UserProfile({
 
         <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
           <UserExpenseChart listHouse={userInfo.houses} />
-          <Card
-            title="Biểu đồ chi phí cá nhân"
-            className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
-          >
-            <h1>Hello world</h1>
-          </Card>
+
+          <UserIncome />
         </div>
 
         <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">

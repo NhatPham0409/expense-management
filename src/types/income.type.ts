@@ -5,4 +5,5 @@ export interface IIncome extends Document {
   note: string;
   createAt: Date;
   userId: mongoose.Types.ObjectId;
+  _id: string;
 }

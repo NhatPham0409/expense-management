@@ -48,10 +48,40 @@ async function getUserDetailExpense(
   return response;
 }
 
+async function getUserIncome() {
+  const response: any = await axiosInstance.post(`/api/income`, {});
+
+  return response;
+}
+
+async function deleteIncome(incomeId: string) {
+  const response: any = await axiosInstance.post(`/api/deleteIncome`, {
+    incomeId,
+  });
+
+  return response;
+}
+
+async function createIncome(payload: any) {
+  const response: any = await axiosInstance.post(`/api/createIncome`, payload);
+
+  return response;
+}
+
+async function updateIncome(payload: any) {
+  const response: any = await axiosInstance.post(`/api/updateIncome`, payload);
+
+  return response;
+}
+
 export const UserService = {
   userInfor,
   getListUsers,
   getUserInforDetail,
   getUserDetailColumnStatistic,
   getUserDetailExpense,
+  getUserIncome,
+  deleteIncome,
+  createIncome,
+  updateIncome,
 };
