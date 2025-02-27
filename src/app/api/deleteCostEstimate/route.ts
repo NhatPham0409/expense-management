@@ -1,8 +1,7 @@
-import CustomExpenseType from "@/models/CustomExpenseType";
+import CostEstimate from "@/models/CostEstimate";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
 import connectDB from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
-import { message } from "antd";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,24 +15,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { customExpenseTypeId } = await req.json();
-    const customExpenseType = await CustomExpenseType.findById(
-      customExpenseTypeId
-    );
-    if (!customExpenseType) {
+    const { expenseType } = await req.json();
+
+    if (!expenseType) {
       return NextResponse.json(
-        { message: "Không tìm thấy loại chi tiêu này!" },
+        { message: "Thiếu loại chi tiêu!" },
         { status: 400 }
       );
     }
 
-    await CustomExpenseType.findByIdAndDelete(customExpenseTypeId);
+    // Xóa costEstimate theo userId và expenseType
+    const deletedEstimate = await CostEstimate.findOneAndDelete({ userId, expenseType });
+
+    if (!deletedEstimate) {
+      return NextResponse.json(
+        { message: "Không tìm thấy dự kiến chi tiêu để xóa!" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
-      { message: "Xoá loại chi tiêu thành công!" },
-      { status: 201 }
+      { message: "Xóa dự kiến chi tiêu thành công!", deletedEstimate },
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Lỗi khi tạo CustomExpenseType:", error);
+    console.error("Lỗi khi xóa dự kiến chi tiêu:", error);
     return NextResponse.json({ message: "Lỗi server!" }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import Expense from "@/models/Expense";
 import House from "@/models/House";
+import PersonalExpense from "@/models/PersonalExpense";
 import User from "@/models/User";
 import connectDB from "@/utils/db";
 import { getUserIdFromToken } from "@/utils/getUserIdFromToken";
@@ -32,14 +33,23 @@ export async function POST(req: NextRequest) {
     const expenses = await Expense.find(filter)
       .populate("buyer", "_id name")
       .lean();
-
+    const personalExpense = await PersonalExpense.find({ userId });
+    personalExpense.forEach((personalExpense) => {
+      const { createAt, cost } = personalExpense;
+      const monthYear = new Date(createAt).toISOString().slice(0, 7);
+      if (!debtByMonth[monthYear]) {
+        debtByMonth[monthYear] = 0;
+      }
+      debtByMonth[monthYear] += cost;
+      console.log("aasdsads", debtByMonth);
+    });
     const debtByMonth: Record<string, number> = {};
 
     expenses.forEach((expense) => {
       const { createAt, cost, share } = expense;
       if (!createAt || !cost || !share[userId]) return;
 
-      const monthYear = new Date(createAt).toISOString().slice(0, 7); // YYYY-MM
+      const monthYear = new Date(createAt).toISOString().slice(0, 7);
       const totalShare: any = Object.values(share).reduce(
         (sum: any, val) => sum + val,
         0
