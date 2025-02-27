@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Lỗi khi tạo thu nhập:", error);
+    console.log("Lỗi khi tạo thu nhập:", error);
     return NextResponse.json({ message: "Lỗi server!" }, { status: 500 });
   }
 }

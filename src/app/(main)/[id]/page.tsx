@@ -255,6 +255,12 @@ export default function RoomExpenses() {
     }
   };
 
+  const removeVietnameseTones = (str: string) => {
+    str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Chuẩn hóa và xóa dấu
+    str = str.replace(/[đĐ]/g, "d"); // Thay đ/Đ bằng d
+    return str.toLowerCase(); // Chuyển về chữ thường để tìm kiếm không phân biệt hoa/thường
+  };
+
   return (
     <motion.div
       initial="hidden"
@@ -336,10 +342,28 @@ export default function RoomExpenses() {
                   <Form.Item name="note" label="Ghi chú">
                     <Space.Compact style={{ width: "100%" }}>
                       <Select
+                        showSearch
                         defaultValue={expenseType}
                         style={{ width: 140 }}
                         popupMatchSelectWidth={false}
                         onChange={(value) => setExpenseType(value)}
+                        filterOption={(inputValue, option) => {
+                          const searchText = removeVietnameseTones(inputValue);
+                          const optionText = removeVietnameseTones(
+                            option?.children?.toString() || ""
+                          );
+                          return optionText.includes(searchText);
+                        }}
+                        // Nếu muốn sắp xếp, giữ lại filterSort
+                        filterSort={(optionA, optionB) =>
+                          removeVietnameseTones(
+                            optionA?.children?.toString() || ""
+                          ).localeCompare(
+                            removeVietnameseTones(
+                              optionB?.children?.toString() || ""
+                            )
+                          )
+                        }
                       >
                         {expenseTypes.map((expense) => (
                           <Option key={expense.value} value={expense.value}>

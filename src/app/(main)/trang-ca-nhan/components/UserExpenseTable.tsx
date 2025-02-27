@@ -1,10 +1,11 @@
 import { UserService } from "@/service";
 import { IExpense } from "@/types/expense.type";
 import { expenseTypes } from "@/utils/constant";
-import { Button, Card, Table, Tag } from "antd";
+import { Button, Card, Table, Tag, Tooltip } from "antd";
 import React, { useEffect, useState } from "react";
 import {
   DownOutlined,
+  PlusOutlined,
   SettingOutlined,
   UserDeleteOutlined,
 } from "@ant-design/icons";
@@ -17,6 +18,8 @@ function UserExpenseTable() {
   const [totalElement, setTotalElement] = useState(0);
   const [year, setYear] = useState<number | null>(null);
   const [month, setMonth] = useState<number | null>(null);
+  const [isAddUserExpenseModal, setIsAddUserExpenseModal] =
+    useState<boolean>(false);
 
   const fetchListExpense = async () => {
     setIsExpenseLoading(true);
@@ -91,12 +94,6 @@ function UserExpenseTable() {
         );
       },
     },
-    // ...(houseInfor?.member || []).map((member) => ({
-    //   title: member.name,
-    //   dataIndex: ["share", member._id],
-    //   key: member._id,
-    //   render: (share: number | undefined) => share || 0,
-    // })),
   ];
 
   const handlePageChange = (page: number, size?: number) => {
@@ -109,7 +106,22 @@ function UserExpenseTable() {
     <Card
       title="Bảng thống kê chi phí cá nhân"
       className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
-      extra={<Button icon={<SettingOutlined />} type="link" />}
+      extra={
+        <Button
+          icon={
+            <Tooltip placement="bottom" title="Thêm chi tiêu mới">
+              <Button
+                icon={<PlusOutlined />}
+                onClick={(e) => {
+                  console.log("check");
+                }}
+                type="link"
+              />
+            </Tooltip>
+          }
+          type="link"
+        />
+      }
     >
       <Table
         loading={isExpenseLoading}
