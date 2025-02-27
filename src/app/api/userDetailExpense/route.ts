@@ -38,15 +38,20 @@ export async function POST(req: NextRequest) {
 
     const expenses = await Expense.find(filter)
       .populate("buyer", "_id name")
+      .populate("idHouse", "_id name")
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    // Tính tổng số trang
+    const result = expenses.map((expense) => {
+      
+      return expense;
+    });
+
     const totalPages = Math.ceil(totalRecords / limit);
 
     return NextResponse.json({
-      data: expenses,
+      data: result,
       pagination: {
         totalRecords,
         totalPages,
