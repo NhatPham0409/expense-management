@@ -1,4 +1,3 @@
-import { ICustomExpenseType } from "@/types/customExpenseType.type";
 import { IPersonalExpense } from "@/types/personalExpense.type";
 import mongoose, { Schema } from "mongoose";
 

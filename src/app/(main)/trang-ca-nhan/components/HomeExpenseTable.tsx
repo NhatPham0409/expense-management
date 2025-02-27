@@ -1,15 +1,10 @@
 import { UserService } from "@/service";
 import { IExpense } from "@/types/expense.type";
 import { expenseTypes } from "@/utils/constant";
-import { Button, Card, Table, Tag } from "antd";
+import { Card, Table, Tag } from "antd";
 import React, { useEffect, useState } from "react";
-import {
-  DownOutlined,
-  SettingOutlined,
-  UserDeleteOutlined,
-} from "@ant-design/icons";
 
-function UserExpenseTable() {
+function HomeExpenseTable() {
   const [isExpenseLoading, setIsExpenseLoading] = useState<boolean>(false);
   const [listExpense, setListExpense] = useState<IExpense[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,9 +102,8 @@ function UserExpenseTable() {
 
   return (
     <Card
-      title="Bảng thống kê chi phí cá nhân"
+      title="Bảng thống kê chi phí trong nhà"
       className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
-      extra={<Button icon={<SettingOutlined />} type="link" />}
     >
       <Table
         loading={isExpenseLoading}
@@ -128,4 +122,4 @@ function UserExpenseTable() {
   );
 }
 
-export default UserExpenseTable;
+export default HomeExpenseTable;
