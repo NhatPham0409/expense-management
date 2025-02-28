@@ -64,3 +64,9 @@ const hslToRgb = (
     b: Math.round(b * 255),
   };
 };
+
+export const removeVietnameseTones = (str: string) => {
+  str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  str = str.replace(/[đĐ]/g, "d");
+  return str.toLowerCase();
+};

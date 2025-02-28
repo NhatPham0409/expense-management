@@ -8,7 +8,10 @@ import { Typography, Spin, Card, Avatar, Col, Row } from "antd";
 import { useRouter } from "next/navigation";
 import HouseCard from "@/app/(main)/trang-ca-nhan/components/HouseCard";
 import UserExpenseChart from "@/app/(main)/trang-ca-nhan/components/UserExpenseChart";
+import LoadingData from "@/components/LoadingData";
+import HomeExpenseTable from "@/app/(main)/trang-ca-nhan/components/HomeExpenseTable";
 import UserExpenseTable from "@/app/(main)/trang-ca-nhan/components/UserExpenseTable";
+import UserIncome from "@/app/(main)/trang-ca-nhan/components/UserIncome";
 
 const { Title, Text } = Typography;
 
@@ -76,7 +79,7 @@ function Profile() {
     >
       <AnimatePresence>
         {isLoading ? (
-          <LoadingSkeleton />
+          <LoadingData />
         ) : (
           userInfo && (
             <UserProfile
@@ -87,28 +90,6 @@ function Profile() {
           )
         )}
       </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <motion.div
-      key="loading"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex flex-col items-center justify-center w-full min-h-[400px]"
-    >
-      <Spin size="large" />
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mt-4 text-base font-medium text-indigo-600"
-      >
-        Đang tải dữ liệu...
-      </motion.p>
     </motion.div>
   );
 }
@@ -173,11 +154,16 @@ function UserProfile({
           </Row>
         </div>
 
-        <div>
+        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
           <UserExpenseChart listHouse={userInfo.houses} />
+
+          <UserIncome />
         </div>
 
-        <UserExpenseTable />
+        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
+          <HomeExpenseTable />
+          <UserExpenseTable />
+        </div>
       </div>
     </motion.div>
   );

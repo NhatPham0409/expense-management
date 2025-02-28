@@ -41,6 +41,7 @@ import RemoveUserModal from "@/app/(main)/[id]/components/RemoveUserModal";
 import { useUserContext } from "@/app/app-provider";
 import ConfirmPopup from "@/components/ConfirmPopup";
 import ExpenseFilter from "@/app/(main)/[id]/components/ExpenseFilter";
+import { removeVietnameseTones } from "@/utils/utils";
 
 export interface DebtType {
   userId: string;
@@ -336,10 +337,27 @@ export default function RoomExpenses() {
                   <Form.Item name="note" label="Ghi chú">
                     <Space.Compact style={{ width: "100%" }}>
                       <Select
+                        showSearch
                         defaultValue={expenseType}
                         style={{ width: 140 }}
                         popupMatchSelectWidth={false}
                         onChange={(value) => setExpenseType(value)}
+                        filterOption={(inputValue, option) => {
+                          const searchText = removeVietnameseTones(inputValue);
+                          const optionText = removeVietnameseTones(
+                            option?.children?.toString() || ""
+                          );
+                          return optionText.includes(searchText);
+                        }}
+                        filterSort={(optionA, optionB) =>
+                          removeVietnameseTones(
+                            optionA?.children?.toString() || ""
+                          ).localeCompare(
+                            removeVietnameseTones(
+                              optionB?.children?.toString() || ""
+                            )
+                          )
+                        }
                       >
                         {expenseTypes.map((expense) => (
                           <Option key={expense.value} value={expense.value}>
