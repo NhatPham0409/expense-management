@@ -1,4 +1,4 @@
-import { HouseService } from "@/service";
+import { HouseService, UserService } from "@/service";
 import { IExpense } from "@/types/expense.type";
 import { expenseTypes } from "@/utils/constant";
 import { removeVietnameseTones } from "@/utils/utils";
@@ -19,64 +19,48 @@ import { toast } from "react-toastify";
 
 const { Option } = Select;
 
-interface EditExpenseModalProps {
+interface CreateUpdateExpenseModalProps {
   visible: boolean;
   onCancel: () => void;
   onSuccessfullyCreated: () => void;
-  selectedExpense: IExpense | null;
-  roomMembers: any[];
+  selectedExpense?: IExpense | null;
 }
 
-const EditExpenseModal = ({
+const CreateUpdateExpenseModal = ({
   visible,
   onCancel,
   onSuccessfullyCreated,
   selectedExpense,
-  roomMembers,
-}: EditExpenseModalProps) => {
+}: CreateUpdateExpenseModalProps) => {
   const [form] = Form.useForm();
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  const [shares, setShares] = useState<{ [key: string]: number }>({});
   const [expenseType, setExpenseType] = useState<string>(expenseTypes[0].value);
+
+  console.log({ selectedExpense });
 
   useEffect(() => {
     if (selectedExpense) {
-      const shareData = selectedExpense.share || {};
-      setShares(Object.fromEntries(Object.entries(shareData)));
       setExpenseType(selectedExpense.expenseType);
       form.setFieldsValue({
-        buyer: selectedExpense.buyer._id,
-        amount: selectedExpense.cost,
+        cost: selectedExpense.cost,
         note: selectedExpense.note,
       });
+    } else {
+      form.resetFields();
     }
   }, [selectedExpense, form]);
 
-  const handleShareChange = (memberId: string, value: number) => {
-    setShares((prevShares) => ({
-      ...prevShares,
-      [memberId]: value,
-    }));
-  };
-
-  const handleUpdateExpense = () => {
-    form.validateFields().then((values) => {
+  const handleUpdateExpense = async () => {
+    try {
+      const values = await form.validateFields();
       setIsConfirming(true);
-      try {
-        const newExpense = {
-          idExpense: selectedExpense?._id,
-          updateData: {
-            idHouse: selectedExpense?.idHouse,
-            buyer: values.buyer,
-            cost: values.amount,
-            note: values.note || "",
-            expenseType: expenseType,
-            share: shares,
-          },
-        };
 
+      let payload = { ...values, expenseType };
+
+      if (selectedExpense) {
+        payload = { ...payload, expenseId: selectedExpense._id };
         toast
-          .promise(HouseService.updateExpense(newExpense), {
+          .promise(UserService.updatePersonalExpense(payload), {
             pending: "Đang xử lý dữ liệu",
           })
           .then((res) => {
@@ -88,39 +72,29 @@ const EditExpenseModal = ({
             const errorMessage = err.response.data.message;
             toast.error(errorMessage);
           });
-      } catch (error: any) {
-        toast.error("Đã xảy ra lỗi. Vui lòng thử lại.");
-      } finally {
-        setIsConfirming(false);
+      } else {
+        toast
+          .promise(UserService.createPersonalExpense(payload), {
+            pending: "Đang xử lý dữ liệu",
+          })
+          .then((res) => {
+            toast.success(res.data.message);
+            onCancel();
+            onSuccessfullyCreated();
+          })
+          .catch((err) => {
+            const errorMessage = err.response.data.message;
+            toast.error(errorMessage);
+          });
       }
-    });
-  };
 
-  const shareContent = (
-    <Form.Item name="shares" initialValue={shares}>
-      <Space direction="vertical" style={{ width: 250 }}>
-        {roomMembers.map((member) => (
-          <Space
-            key={member._id}
-            className="flex items-center justify-between w-full"
-          >
-            <span>{member.name}</span>
-            <Select
-              value={shares[member._id] ?? 1}
-              onChange={(value) => handleShareChange(member._id, value)}
-              style={{ width: 100, textAlign: "center" }}
-            >
-              {[...Array(21)].map((_, index) => (
-                <Option key={index} value={index}>
-                  {index}
-                </Option>
-              ))}
-            </Select>
-          </Space>
-        ))}
-      </Space>
-    </Form.Item>
-  );
+      onSuccessfullyCreated();
+    } catch (error) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   return (
     <Modal
@@ -134,25 +108,9 @@ const EditExpenseModal = ({
     >
       <Form form={form} layout="vertical">
         <Row gutter={[16, 16]} justify="space-between" align="bottom">
-          <Col xs={24} sm={12} md={12}>
+          <Col xs={24}>
             <Form.Item
-              name="buyer"
-              label="Người mua"
-              rules={[{ required: true, message: "Vui lòng chọn người mua" }]}
-            >
-              <Select placeholder="Chọn người mua">
-                {roomMembers.map((member) => (
-                  <Option key={member._id} value={member._id}>
-                    {member.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12} md={12}>
-            <Form.Item
-              name="amount"
+              name="cost"
               label="Tổng tiền"
               rules={[{ required: true, message: "Vui lòng nhập tổng tiền" }]}
             >
@@ -203,23 +161,10 @@ const EditExpenseModal = ({
               </Space.Compact>
             </Form.Item>
           </Col>
-
-          <Col xs={24}>
-            <Form.Item label="Chia tỉ lệ">
-              <Popover
-                content={shareContent}
-                title="Chia tỉ lệ"
-                trigger="click"
-                placement="bottomRight"
-              >
-                <Button style={{ width: "100%" }}>Chia tỉ lệ</Button>
-              </Popover>
-            </Form.Item>
-          </Col>
         </Row>
       </Form>
     </Modal>
   );
 };
 
-export default EditExpenseModal;
+export default CreateUpdateExpenseModal;

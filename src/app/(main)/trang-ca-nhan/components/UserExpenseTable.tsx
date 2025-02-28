@@ -1,7 +1,7 @@
 import { UserService } from "@/service";
 import { IExpense } from "@/types/expense.type";
 import { expenseTypes } from "@/utils/constant";
-import { Button, Card, Table, Tag, Tooltip } from "antd";
+import { Button, Card, Space, Table, Tag, Tooltip } from "antd";
 import React, { useEffect, useState } from "react";
 import {
   DownOutlined,
@@ -9,51 +9,44 @@ import {
   SettingOutlined,
   UserDeleteOutlined,
 } from "@ant-design/icons";
+import ConfirmPopup from "@/components/ConfirmPopup";
+import { toast } from "react-toastify";
+import CreateUpdateExpenseModal from "@/app/(main)/trang-ca-nhan/components/CreateUpdateExpenseModal";
 
 function UserExpenseTable() {
-  const [isExpenseLoading, setIsExpenseLoading] = useState<boolean>(false);
-  const [listExpense, setListExpense] = useState<IExpense[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalElement, setTotalElement] = useState(0);
-  const [year, setYear] = useState<number | null>(null);
-  const [month, setMonth] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [listPersonalExpense, setListPersonalExpense] = useState<IExpense[]>(
+    []
+  );
+  const [isModalDelete, setIsModalDelete] = useState(false);
+  const [isModalEdit, setIsModalEdit] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
+
   const [isAddUserExpenseModal, setIsAddUserExpenseModal] =
     useState<boolean>(false);
 
   const fetchListExpense = async () => {
-    setIsExpenseLoading(true);
+    setIsLoading(true);
     try {
-      const responseListExpense = await UserService.getUserDetailExpense(
-        currentPage,
-        pageSize,
-        year ?? undefined,
-        month ?? undefined
-      );
+      const response = await UserService.getListPersonalExpense();
 
-      if (responseListExpense.data) {
-        const listExpense = responseListExpense.data.data;
-        const totalExpense = responseListExpense.data.pagination.totalRecords;
-        setListExpense(listExpense);
-        setTotalElement(totalExpense);
+      if (response.data) {
+        const listExpense = response.data.expenses;
+        setListPersonalExpense(listExpense);
       }
     } catch (error) {
       console.error("Lỗi khi lấy thông tin phòng:", error);
     } finally {
-      setIsExpenseLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchListExpense();
-  }, [currentPage, pageSize, year, month]);
+  }, []);
 
   const columns = [
-    {
-      title: "Người mua",
-      dataIndex: ["buyer", "name"],
-      key: "buyer",
-    },
     {
       title: "Tổng tiền",
       dataIndex: "cost",
@@ -94,12 +87,54 @@ function UserExpenseTable() {
         );
       },
     },
+    {
+      title: "Hành động",
+      dataIndex: "action",
+      key: "action",
+      width: 150,
+      render: (_: string, record: IExpense) => (
+        <Space size="small">
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => {
+              setSelectedExpense(record);
+              setIsAddUserExpenseModal(true);
+            }}
+            type="link"
+          />
+          <Button
+            icon={<UserDeleteOutlined />}
+            onClick={() => {
+              setSelectedExpense(record);
+              setIsModalDelete(true);
+            }}
+            type="link"
+            danger
+          />
+        </Space>
+      ),
+    },
   ];
 
-  const handlePageChange = (page: number, size?: number) => {
-    const newPageSize = size || pageSize;
-    setCurrentPage(page);
-    setPageSize(newPageSize);
+  const handleDeleteExpenses = () => {
+    if (selectedExpense) {
+      setIsConfirmingDelete(true);
+      toast
+        .promise(UserService.deletePersonalExpense(selectedExpense._id), {
+          pending: `Chi tiêu đang được xóa `,
+          success: `Xóa chi tiêu thành công`,
+        })
+        .then(() => {
+          fetchListExpense();
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        })
+        .finally(() => {
+          setIsConfirmingDelete(false);
+          setIsModalDelete(false);
+        });
+    }
   };
 
   return (
@@ -107,34 +142,40 @@ function UserExpenseTable() {
       title="Bảng thống kê chi phí cá nhân"
       className="w-full md:w-1/2 flex-grow mb-4 md:mb-0"
       extra={
-        <Button
-          icon={
-            <Tooltip placement="bottom" title="Thêm chi tiêu mới">
-              <Button
-                icon={<PlusOutlined />}
-                onClick={(e) => {
-                  console.log("check");
-                }}
-                type="link"
-              />
-            </Tooltip>
-          }
-          type="link"
-        />
+        <Tooltip placement="bottom" title="Thêm chi tiêu mới">
+          <Button
+            icon={<PlusOutlined />}
+            onClick={(e) => {
+              setIsAddUserExpenseModal(true);
+            }}
+            type="link"
+          />
+        </Tooltip>
       }
     >
       <Table
-        loading={isExpenseLoading}
+        loading={isLoading}
         columns={columns}
-        dataSource={listExpense}
+        dataSource={listPersonalExpense}
         scroll={{ x: "max-content" }}
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          onChange: handlePageChange,
-          onShowSizeChange: handlePageChange,
-          total: totalElement,
+      />
+
+      <CreateUpdateExpenseModal
+        visible={isAddUserExpenseModal}
+        onCancel={() => {
+          setSelectedExpense(null);
+          setIsAddUserExpenseModal(false);
         }}
+        onSuccessfullyCreated={fetchListExpense}
+        selectedExpense={selectedExpense}
+      />
+
+      <ConfirmPopup
+        isConfirming={isConfirmingDelete}
+        isModalDelete={isModalDelete}
+        handleDelete={handleDeleteExpenses}
+        setIsModalDelete={setIsModalDelete}
+        message={<p>Bạn có chắc chắn muốn xóa chi phí này không?</p>}
       />
     </Card>
   );

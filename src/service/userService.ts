@@ -74,6 +74,38 @@ async function updateIncome(payload: any) {
   return response;
 }
 
+async function getListPersonalExpense() {
+  const response: any = await axiosInstance.post(`/api/personalExpense`, {});
+
+  return response;
+}
+
+async function deletePersonalExpense(expenseId: string) {
+  const response: any = await axiosInstance.post(`/api/deletePersonalExpense`, {
+    expenseId,
+  });
+
+  return response;
+}
+
+async function createPersonalExpense(payload: any) {
+  const response: any = await axiosInstance.post(
+    `/api/createPersonalExpense`,
+    payload
+  );
+
+  return response;
+}
+
+async function updatePersonalExpense(payload: any) {
+  const response: any = await axiosInstance.post(
+    `/api/updatePersonalExpense`,
+    payload
+  );
+
+  return response;
+}
+
 export const UserService = {
   userInfor,
   getListUsers,
@@ -84,4 +116,8 @@ export const UserService = {
   deleteIncome,
   createIncome,
   updateIncome,
+  getListPersonalExpense,
+  deletePersonalExpense,
+  createPersonalExpense,
+  updatePersonalExpense,
 };

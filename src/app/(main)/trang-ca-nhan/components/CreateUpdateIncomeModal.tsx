@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal, Form, Input, Spin, InputNumber } from "antd";
 import { toast } from "react-toastify";
 import { LoadingOutlined } from "@ant-design/icons";
-import { UserService } from "@/service"; // Giả sử bạn đã có service để thêm/sửa
+import { UserService } from "@/service";
 import { IIncome } from "@/types/income.type";
 
 interface CreateUpdateIncomeModalProps {

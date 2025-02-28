@@ -9,7 +9,7 @@ import {
 } from "@ant-design/icons";
 import ConfirmPopup from "@/components/ConfirmPopup";
 import { toast } from "react-toastify";
-import CreateUpdateIncomeModal from "./CreateUpdateIncomeModal"; // Import modal component
+import CreateUpdateIncomeModal from "./CreateUpdateIncomeModal";
 
 function UserIncome() {
   const [isIncomeLoading, setIsIncomeLoading] = useState<boolean>(false);
@@ -18,6 +18,8 @@ function UserIncome() {
   const [isModalDelete, setIsModalDelete] = useState(false);
   const [isModalCreateUpdate, setIsModalCreateUpdate] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const columns = [
     {
@@ -113,6 +115,22 @@ function UserIncome() {
     setSelectedIncome(null);
   };
 
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return listIncome.slice(startIndex, endIndex);
+  };
+
+  const paginationConfig = {
+    current: currentPage,
+    pageSize: pageSize,
+    total: listIncome.length,
+    onChange: (page: number, pageSize: number) => {
+      setCurrentPage(page);
+      setPageSize(pageSize);
+    },
+  };
+
   return (
     <Card
       title="Bảng thu nhập cá nhân"
@@ -133,9 +151,9 @@ function UserIncome() {
       <Table
         loading={isIncomeLoading}
         columns={columns}
-        dataSource={listIncome}
+        dataSource={getPaginatedData()}
         scroll={{ x: "max-content" }}
-        pagination={false}
+        pagination={paginationConfig}
       />
 
       <ConfirmPopup

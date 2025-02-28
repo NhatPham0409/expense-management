@@ -41,6 +41,7 @@ import RemoveUserModal from "@/app/(main)/[id]/components/RemoveUserModal";
 import { useUserContext } from "@/app/app-provider";
 import ConfirmPopup from "@/components/ConfirmPopup";
 import ExpenseFilter from "@/app/(main)/[id]/components/ExpenseFilter";
+import { removeVietnameseTones } from "@/utils/utils";
 
 export interface DebtType {
   userId: string;
@@ -255,12 +256,6 @@ export default function RoomExpenses() {
     }
   };
 
-  const removeVietnameseTones = (str: string) => {
-    str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Chuẩn hóa và xóa dấu
-    str = str.replace(/[đĐ]/g, "d"); // Thay đ/Đ bằng d
-    return str.toLowerCase(); // Chuyển về chữ thường để tìm kiếm không phân biệt hoa/thường
-  };
-
   return (
     <motion.div
       initial="hidden"
@@ -354,7 +349,6 @@ export default function RoomExpenses() {
                           );
                           return optionText.includes(searchText);
                         }}
-                        // Nếu muốn sắp xếp, giữ lại filterSort
                         filterSort={(optionA, optionB) =>
                           removeVietnameseTones(
                             optionA?.children?.toString() || ""
