@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       idHouse: { $in: houseIds },
       [`share.${userId}`]: { $exists: true },
     };
+    const debtByMonth: Record<string, number> = {};
 
     const expenses = await Expense.find(filter)
       .populate("buyer", "_id name")
@@ -40,10 +41,9 @@ export async function POST(req: NextRequest) {
       if (!debtByMonth[monthYear]) {
         debtByMonth[monthYear] = 0;
       }
+      console.log(cost);
       debtByMonth[monthYear] += cost;
-      console.log("aasdsads", debtByMonth);
     });
-    const debtByMonth: Record<string, number> = {};
 
     expenses.forEach((expense) => {
       const { createAt, cost, share } = expense;
