@@ -14,7 +14,11 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { formatCurrency } from "@/utils/formatCurrency";
 import LoadingData from "@/components/LoadingData";
+import ExpenseFilter from "@/app/(main)/[id]/components/ExpenseFilter";
+import dayjs from "dayjs";
 
 ChartJS.register(
   ArcElement,
@@ -22,7 +26,8 @@ ChartJS.register(
   Legend,
   CategoryScale,
   LinearScale,
-  BarElement
+  BarElement,
+  ChartDataLabels
 );
 
 interface UserData {
@@ -36,12 +41,23 @@ interface UserExpenseChartProps {
 
 function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
   const [houseStatistic, setHouseStatistic] = useState<any>({});
+  const [typeStatistic, setTypeStatistic] = useState<any[]>([]); // Khởi tạo là mảng rỗng
   const [isLoading, setIsLoading] = useState(false);
   const [selectedHouseId, setSelectedHouseId] = useState<string | undefined>(
     undefined
   );
+  const [year, setYear] = useState<number | null>(dayjs().year());
+  const [month, setMonth] = useState<number | null>(dayjs().month() + 1);
 
-  const fetchHouseStatistic = async (houseId?: string) => {
+  const handleFilter = (
+    selectedYear: number | null,
+    selectedMonth: number | null
+  ) => {
+    setYear(selectedYear);
+    setMonth(selectedMonth);
+  };
+
+  const fetchMonthStatistic = async (houseId?: string) => {
     setIsLoading(true);
     try {
       const response = await UserService.getUserDetailColumnStatistic(houseId);
@@ -55,15 +71,38 @@ function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
     }
   };
 
-  // Gọi API khi component mount
+  const fetchTypeStatistic = async () => {
+    setIsLoading(true);
+    try {
+      const response = await UserService.userDetailTypeStatistic(
+        year ?? undefined,
+        month ?? undefined
+      );
+      if (response.data && Array.isArray(response.data.data)) {
+        setTypeStatistic(response.data.data);
+      } else {
+        setTypeStatistic([]);
+        console.warn("Dữ liệu không phải mảng:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching type statistic:", error);
+      setTypeStatistic([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchHouseStatistic();
+    fetchMonthStatistic();
   }, []);
 
-  // Xử lý khi thay đổi lựa chọn nhà
+  useEffect(() => {
+    fetchTypeStatistic();
+  }, [year, month]);
+
   const handleHouseChange = (value: string | undefined) => {
     setSelectedHouseId(value);
-    fetchHouseStatistic(value);
+    fetchMonthStatistic(value);
   };
 
   const userData: UserData[] = Object.entries(houseStatistic).map(
@@ -72,6 +111,85 @@ function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
       value: Number(amount),
     })
   );
+
+  const maxValue = Math.max(...userData.map((user) => user.value));
+  const paddedMaxValue = maxValue * 1.1;
+
+  const typeData = {
+    labels: Array.isArray(typeStatistic)
+      ? typeStatistic.map((item: any) => item.expenseType)
+      : [],
+    datasets: [
+      {
+        label: "Chi phí thực tế",
+        data: Array.isArray(typeStatistic)
+          ? typeStatistic.map((item: any) =>
+              item.totalCost === 0 ? null : item.totalCost
+            )
+          : [],
+        backgroundColor: "#1890ff",
+        barThickness: 30,
+      },
+      {
+        label: "Chi phí dự kiến",
+        data: Array.isArray(typeStatistic)
+          ? typeStatistic.map((item: any) =>
+              item.costEstimate === 0 ? null : item.costEstimate
+            )
+          : [],
+        backgroundColor: "#faad14",
+      },
+    ],
+  };
+
+  const typeOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: (context: any) => {
+            const label = context.dataset.label || "";
+            const value = context.raw;
+            return `${label}: ${formatCurrency(value)}`;
+          },
+        },
+      },
+      datalabels: {
+        display: true,
+        anchor: "end" as const,
+        align: "top" as const,
+        formatter: (value: number) => (value ? formatCurrency(value) : ""), // Ẩn nhãn nếu giá trị là null hoặc 0
+        color: "#000",
+        font: {
+          weight: "bold" as const,
+          size: 12,
+        },
+        offset: 4,
+      },
+    },
+    scales: {
+      x: {
+        stacked: false,
+      },
+      y: {
+        beginAtZero: true,
+        max:
+          Math.max(
+            ...typeStatistic.map((item: any) =>
+              Math.max(item.totalCost || 0, item.costEstimate || 0)
+            )
+          ) * 1.1 || 100, // Đảm bảo max không bị ảnh hưởng bởi giá trị 0
+      },
+    },
+  };
 
   const barData = {
     labels: userData.map((user) => user.type),
@@ -111,18 +229,34 @@ function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
         },
       },
       tooltip: {
+        enabled: true,
         callbacks: {
           label: (context: any) => {
             const label = context.chart.data.labels[context.dataIndex];
             const value = context.raw;
-            return `${label}: ${value}`;
+            return `${label}: ${formatCurrency(value)}`;
           },
         },
+      },
+      datalabels: {
+        display: true,
+        anchor: "end" as const,
+        align: "top" as const,
+        formatter: (value: number) => formatCurrency(value),
+        color: "#000",
+        font: {
+          weight: "bold" as const,
+          size: 12,
+        },
+        offset: 4,
       },
     },
     scales: {
       x: { stacked: false },
-      y: { beginAtZero: true },
+      y: {
+        beginAtZero: true,
+        max: paddedMaxValue,
+      },
     },
   };
 
@@ -135,9 +269,7 @@ function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
     {
       key: "1",
       label: "Thống kê theo tháng",
-      children: isLoading ? (
-        <LoadingData />
-      ) : houseStatistic && Object.keys(houseStatistic).length > 0 ? (
+      children: (
         <div>
           <Select
             showSearch
@@ -154,29 +286,77 @@ function UserExpenseChart({ listHouse }: UserExpenseChartProps) {
             allowClear
             value={selectedHouseId}
           />
-          <div
-            style={{
-              height: "40vh",
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Bar data={barData} options={barOptions} />
-          </div>
+          {isLoading ? (
+            <LoadingData />
+          ) : houseStatistic && Object.keys(houseStatistic).length > 0 ? (
+            <div
+              style={{
+                height: "40vh",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Bar data={barData} options={barOptions} />
+            </div>
+          ) : (
+            <div
+              style={{
+                height: "40vh",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="Chưa có dữ liệu thống kê"
+              />
+            </div>
+          )}
         </div>
-      ) : (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="Chưa có dữ liệu thống kê"
-        />
       ),
     },
     {
       key: "2",
       label: "Thống kê theo loại",
-      children: <h1>Hello world</h1>,
+      children: (
+        <div>
+          <ExpenseFilter onFilter={handleFilter} year={year} month={month} />
+          {isLoading ? (
+            <LoadingData />
+          ) : typeStatistic.length > 0 ? (
+            <div
+              style={{
+                height: "40vh",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Bar data={typeData} options={typeOptions} />
+            </div>
+          ) : (
+            <div
+              style={{
+                height: "40vh",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="Chưa có dữ liệu thống kê"
+              />
+            </div>
+          )}
+        </div>
+      ),
     },
   ];
 

@@ -106,6 +106,48 @@ async function updatePersonalExpense(payload: any) {
   return response;
 }
 
+async function userDetailTypeStatistic(year?: number, month?: number) {
+  let payload: any = {};
+
+  if (year !== undefined) {
+    payload = { ...payload, year };
+  }
+
+  if (month !== undefined) {
+    payload = { ...payload, month };
+  }
+
+  const response = await axiosInstance.post(
+    `/api/userDetailTypeStatistic`,
+    payload
+  );
+
+  return response;
+}
+
+async function getListCostEstimate() {
+  const response: any = await axiosInstance.post(`/api/costEstimate`, {});
+
+  return response;
+}
+
+async function createCostEstimate(payload: any) {
+  const response: any = await axiosInstance.post(
+    `/api/createCostEstimate`,
+    payload
+  );
+
+  return response;
+}
+
+async function deleteCostEstimate(expenseType: string) {
+  const response: any = await axiosInstance.post(`/api/deleteCostEstimate`, {
+    expenseType,
+  });
+
+  return response;
+}
+
 export const UserService = {
   userInfor,
   getListUsers,
@@ -120,4 +162,8 @@ export const UserService = {
   deletePersonalExpense,
   createPersonalExpense,
   updatePersonalExpense,
+  userDetailTypeStatistic,
+  getListCostEstimate,
+  createCostEstimate,
+  deleteCostEstimate,
 };

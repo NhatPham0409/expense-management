@@ -47,7 +47,7 @@ function HomeExpenseTable() {
       key: "buyer",
     },
     {
-      title: "Tổng tiền",
+      title: "Chi tiêu",
       dataIndex: "cost",
       key: "cost",
       render: (cost: number) =>

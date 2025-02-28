@@ -42,6 +42,7 @@ import { useUserContext } from "@/app/app-provider";
 import ConfirmPopup from "@/components/ConfirmPopup";
 import ExpenseFilter from "@/app/(main)/[id]/components/ExpenseFilter";
 import { removeVietnameseTones } from "@/utils/utils";
+import dayjs from "dayjs";
 
 export interface DebtType {
   userId: string;
@@ -81,8 +82,8 @@ export default function RoomExpenses() {
   const [isModalDeleteRoom, setIsModalDeleteRoom] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState(Date.now());
-  const [year, setYear] = useState<number | null>(null);
-  const [month, setMonth] = useState<number | null>(null);
+  const [year, setYear] = useState<number | null>(dayjs().year());
+  const [month, setMonth] = useState<number | null>(dayjs().month() + 1);
 
   const handleFilter = (
     selectedYear: number | null,
@@ -407,7 +408,7 @@ export default function RoomExpenses() {
               </Row>
             </Form>
 
-            <ExpenseFilter onFilter={handleFilter} />
+            <ExpenseFilter onFilter={handleFilter} year={year} month={month} />
 
             <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
               <ExpenseChart

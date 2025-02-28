@@ -1,15 +1,21 @@
 import { DatePicker, Button, Space } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons"; // Thêm ReloadOutlined cho nút Reset
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import React, { useState } from "react";
 import dayjs from "dayjs";
 
 interface ExpenseFilterProps {
+  year: number | null;
+  month: number | null;
   onFilter: (year: number | null, month: number | null) => void;
 }
 
-const ExpenseFilter: React.FC<ExpenseFilterProps> = ({ onFilter }) => {
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+const ExpenseFilter: React.FC<ExpenseFilterProps> = ({
+  onFilter,
+  year,
+  month,
+}) => {
+  const [selectedYear, setSelectedYear] = useState<number | null>(year);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(month);
 
   const handleYearChange = (date: any) => {
     const year = date ? dayjs(date).year() : null;

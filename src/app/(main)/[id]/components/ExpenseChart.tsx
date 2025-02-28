@@ -4,6 +4,7 @@ import { Card, Empty, Tabs } from "antd";
 import React, { useEffect, useState } from "react";
 import LoadingData from "@/components/LoadingData";
 import { Pie, Bar } from "react-chartjs-2";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -14,6 +15,7 @@ import {
   BarElement,
 } from "chart.js";
 import { generateColors } from "@/utils/utils";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 ChartJS.register(
   ArcElement,
@@ -21,7 +23,8 @@ ChartJS.register(
   Legend,
   CategoryScale,
   LinearScale,
-  BarElement
+  BarElement,
+  ChartDataLabels
 );
 
 interface ExpenseChartProps {
@@ -80,6 +83,10 @@ function ExpenseChart({
       type: item.name,
       value: item.totalSpent,
     })) || [];
+
+  const maxValue = Math.max(...userData.map((user) => user.value));
+
+  const paddedMaxValue = maxValue * 1.1;
 
   const typeData: TypeData[] = Object.keys(
     houseStatistic.totalByType || {}
@@ -177,18 +184,34 @@ function ExpenseChart({
         },
       },
       tooltip: {
+        enabled: true,
         callbacks: {
           label: (context: any) => {
             const label = context.chart.data.labels[context.dataIndex];
             const value = context.raw;
-            return `${label}: ${value}`;
+            return `${label}: ${formatCurrency(value)}`;
           },
         },
+      },
+      datalabels: {
+        display: true,
+        anchor: "end" as const,
+        align: "top" as const,
+        formatter: (value: number) => formatCurrency(value),
+        color: "#000",
+        font: {
+          weight: "bold" as const,
+          size: 12,
+        },
+        offset: 4,
       },
     },
     scales: {
       x: { stacked: false },
-      y: { beginAtZero: true },
+      y: {
+        beginAtZero: true,
+        max: paddedMaxValue,
+      },
     },
   };
 

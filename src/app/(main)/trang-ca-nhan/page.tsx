@@ -4,7 +4,7 @@ import { UserService } from "@/service";
 import type { IUserDetail } from "@/types/user.type";
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Typography, Spin, Card, Avatar, Col, Row } from "antd";
+import { Typography, Spin, Card, Avatar, Col, Row, Button } from "antd";
 import { useRouter } from "next/navigation";
 import HouseCard from "@/app/(main)/trang-ca-nhan/components/HouseCard";
 import UserExpenseChart from "@/app/(main)/trang-ca-nhan/components/UserExpenseChart";
@@ -12,6 +12,12 @@ import LoadingData from "@/components/LoadingData";
 import HomeExpenseTable from "@/app/(main)/trang-ca-nhan/components/HomeExpenseTable";
 import UserExpenseTable from "@/app/(main)/trang-ca-nhan/components/UserExpenseTable";
 import UserIncome from "@/app/(main)/trang-ca-nhan/components/UserIncome";
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  AppstoreOutlined,
+} from "@ant-design/icons";
+import ManagerCostEstimate from "@/app/(main)/trang-ca-nhan/components/ManagerCostEstimate";
 
 const { Title, Text } = Typography;
 
@@ -103,6 +109,7 @@ function UserProfile({
   formatCurrency: (amount: number) => string;
   handleNavigate: (id: string) => void;
 }) {
+  const [isModalVisible, setIsModalVisible] = useState(false);
   return (
     <motion.div variants={itemVariants}>
       <div className="flex flex-col gap-4">
@@ -120,8 +127,8 @@ function UserProfile({
           </div>
         </div>
 
-        <div>
-          <Title level={4} className="text-indigo-600 m-0">
+        <div className="flex items-center justify-between">
+          <h1 className="text-indigo-600 m-0 font-bold">
             Tổng dư nợ:{" "}
             <span
               className={`text-base md:text-lg font-bold ${
@@ -134,7 +141,14 @@ function UserProfile({
             >
               {formatCurrency(userInfo.totalDebt)}
             </span>
-          </Title>
+          </h1>
+          <Button
+            type="primary"
+            icon={<AppstoreOutlined />}
+            onClick={() => setIsModalVisible(true)}
+          >
+            Quản lý chi tiêu dự kiến
+          </Button>
         </div>
 
         <div>
@@ -154,16 +168,21 @@ function UserProfile({
           </Row>
         </div>
 
-        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
+        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4">
           <UserExpenseChart listHouse={userInfo.houses} />
 
           <UserIncome />
         </div>
 
-        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4 mb-4">
+        <div className="flex flex-col-reverse md:flex-row items-stretch justify-between gap-4">
           <HomeExpenseTable />
           <UserExpenseTable />
         </div>
+
+        <ManagerCostEstimate
+          isModalVisible={isModalVisible}
+          setIsModalVisible={setIsModalVisible}
+        />
       </div>
     </motion.div>
   );
